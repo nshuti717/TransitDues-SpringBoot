@@ -1,0 +1,8 @@
+$kind: http-request
+description: ""
+url: http://localhost:8080/api/operators
+method: POST
+body:
+  type: json
+  content: '{"fullName": "Jean Baptiste", "phoneNumber": "0788123456", "plateNumber": "RAB123A", "stage": {"id": "2daf99ff-2714-47a1-8ed6-da6db367d2c5"}}  '
+order: 1976040020344543

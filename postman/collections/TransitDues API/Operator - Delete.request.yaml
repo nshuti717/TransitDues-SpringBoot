@@ -1,0 +1,5 @@
+$kind: http-request
+description: ""
+url: http://localhost:8080/api/operators/54c51bff-18e8-4ce8-a755-2bc9b6487a5f
+method: DELETE
+order: 4503518595164720

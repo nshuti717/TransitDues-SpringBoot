@@ -1,0 +1,8 @@
+$kind: http-request
+description: ""
+url: http://localhost:8080/api/stages
+method: POST
+body:
+  type: json
+  content: '{"name": "Remera", "location": "Kigali", "capacity": 1}'
+order: 147553936768210

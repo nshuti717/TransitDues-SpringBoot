@@ -1,0 +1,5 @@
+$kind: http-request
+description: ""
+url: http://localhost:8080/api/stages/2daf99ff-2714-47a1-8ed6-da6db367d2c5
+method: GET
+order: 4499523550064177

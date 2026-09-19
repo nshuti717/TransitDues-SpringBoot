@@ -1,0 +1,571 @@
+{
+  "info": {
+    "name": "TransitDues API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "DuePayment - Create (invalid date)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/api/duepayments",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "duepayments"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"amount\": 5000, \"type\": \"DAILY\", \"datePaid\": \"2026-09-19\", \"status\": \"PAID\", \"operator\": {\"id\": \"00000000-0000-0000-0000-000000000000\"}} ",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "DuePayment - Create (operator not found)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/api/duepayments",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "duepayments"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"amount\": 5000, \"type\": \"DAILY\", \"datePaid\": \"2030-01-01\", \"status\": \"PAID\", \"operator\": {\"id\": \"2daf99ff-2714-47a1-8ed6-da6db367d2c5\"}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "DuePayment - Create (valid)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/api/duepayments",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "duepayments"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"amount\": 5000, \"type\": \"DAILY\", \"datePaid\": \"2026-09-19\", \"status\": \"PAID\", \"operator\": {\"id\": \"2f42453a-3cbc-4a20-8bc7-e52266d33b5b\"}} ",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "DuePayment - Delete",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/duepayments/9cbb54d4-f9e6-4ef3-abbf-98d0c71301d3",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "duepayments",
+            "9cbb54d4-f9e6-4ef3-abbf-98d0c71301d3"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "DuePayment - Get All",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/duepayments",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "duepayments"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "DuePayment - Get By Id",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/duepayments/e114ae9a-e971-403f-bf25-dc3eedeb98cb",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "duepayments",
+            "e114ae9a-e971-403f-bf25-dc3eedeb98cb"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "DuePayment - Update",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/api/duepayments/e114ae9a-e971-403f-bf25-dc3eedeb98cb",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "duepayments",
+            "e114ae9a-e971-403f-bf25-dc3eedeb98cb"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"amount\": 6000, \"type\": \"DAILY\", \"datePaid\": \"2026-09-19\", \"status\": \"PAID\", \"operator\": {\"id\": \"2f42453a-3cbc-4a20-8bc7-e52266d33b5b\"}} ",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Operator - Create (capacity exceeded)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/api/operators",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "operators"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"fullName\": \"Marie Claire\", \"phoneNumber\": \"0788999888\", \"plateNumber\": \"RAC456B\", \"stage\": {\"id\": \"2daf99ff-2714-47a1-8ed6-da6db367d2c5\"}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Operator - Create (stage not found)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/api/operators",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "operators"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"fullName\": \"Test Person\", \"phoneNumber\": \"0788111222\", \"plateNumber\": \"RAD789C\", \"stage\": {\"id\": \"00000000-0000-0000-0000-000000000000\"}} ",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Operator - Create (valid)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/api/operators",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "operators"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"fullName\": \"Jean Baptiste\", \"phoneNumber\": \"0788123456\", \"plateNumber\": \"RAB123A\", \"stage\": {\"id\": \"2daf99ff-2714-47a1-8ed6-da6db367d2c5\"}}  ",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Operator - Delete",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/operators/54c51bff-18e8-4ce8-a755-2bc9b6487a5f",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "operators",
+            "54c51bff-18e8-4ce8-a755-2bc9b6487a5f"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Operator - Get All",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/operators",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "operators"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Operator - Get By Id",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/operators/2f42453a-3cbc-4a20-8bc7-e52266d33b5b",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "operators",
+            "2f42453a-3cbc-4a20-8bc7-e52266d33b5b"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Operator - Update",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/api/operators/2f42453a-3cbc-4a20-8bc7-e52266d33b5b",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "operators",
+            "2f42453a-3cbc-4a20-8bc7-e52266d33b5b"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"fullName\": \"Jean Baptiste Updated\", \"phoneNumber\": \"0788123456\", \"plateNumber\": \"RAB123A\", \"stage\": {\"id\": \"2daf99ff-2714-47a1-8ed6-da6db367d2c5\"}} ",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Stage - Create (invalid - blank name)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/api/stages",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "stages"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\": \"Remera\", \"location\": \"Kigali\", \"capacity\": 1}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Stage - Create (valid)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/api/stages",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "stages"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\": \"\", \"location\": \"Kigali\", \"capacity\": 20} ",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Stage - Delete",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/stages/9383c12d-f0eb-4f88-924e-7baec97d2218",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "stages",
+            "9383c12d-f0eb-4f88-924e-7baec97d2218"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Stage - Get All",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/stages",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "stages"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Stage - Get By Id",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/stages/2daf99ff-2714-47a1-8ed6-da6db367d2c5",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "stages",
+            "2daf99ff-2714-47a1-8ed6-da6db367d2c5"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Stage - Update",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/api/stages/2daf99ff-2714-47a1-8ed6-da6db367d2c5",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "stages",
+            "2daf99ff-2714-47a1-8ed6-da6db367d2c5"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\": \"Remera Updated\", \"location\": \"Kigali\", \"capacity\": 2}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    }
+  ]
+}

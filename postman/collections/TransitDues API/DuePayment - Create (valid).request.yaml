@@ -1,0 +1,8 @@
+$kind: http-request
+description: ""
+url: http://localhost:8080/api/duepayments
+method: POST
+body:
+  type: json
+  content: '{"amount": 5000, "type": "DAILY", "datePaid": "2026-09-19", "status": "PAID", "operator": {"id": "2f42453a-3cbc-4a20-8bc7-e52266d33b5b"}} '
+order: 4350199184737848

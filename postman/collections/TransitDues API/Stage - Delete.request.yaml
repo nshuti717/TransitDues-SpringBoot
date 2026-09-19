@@ -1,0 +1,5 @@
+$kind: http-request
+description: ""
+url: http://localhost:8080/api/stages/9383c12d-f0eb-4f88-924e-7baec97d2218
+method: DELETE
+order: 4502074606708855

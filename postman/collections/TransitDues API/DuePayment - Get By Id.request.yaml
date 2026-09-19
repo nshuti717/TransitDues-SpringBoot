@@ -1,0 +1,5 @@
+$kind: http-request
+description: ""
+url: http://localhost:8080/api/duepayments/e114ae9a-e971-403f-bf25-dc3eedeb98cb
+method: GET
+order: 4503587300038581

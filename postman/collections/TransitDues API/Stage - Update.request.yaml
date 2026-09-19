@@ -1,0 +1,8 @@
+$kind: http-request
+description: ""
+url: http://localhost:8080/api/stages/2daf99ff-2714-47a1-8ed6-da6db367d2c5
+method: PUT
+body:
+  type: json
+  content: '{"name": "Remera Updated", "location": "Kigali", "capacity": 2}'
+order: 4499742218027704

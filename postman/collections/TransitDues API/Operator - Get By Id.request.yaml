@@ -1,0 +1,5 @@
+$kind: http-request
+description: ""
+url: http://localhost:8080/api/operators/2f42453a-3cbc-4a20-8bc7-e52266d33b5b
+method: GET
+order: 4503392179155984
