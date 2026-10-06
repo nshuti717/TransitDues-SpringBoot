@@ -1,0 +1,487 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>TransitDues - Stages Management</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS v3 -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-tint": "#1555d1",
+            "on-primary": "#ffffff",
+            "on-error": "#ffffff",
+            "primary-fixed": "#dbe1ff",
+            "tertiary": "#00655b",
+            "on-tertiary-fixed-variant": "#005048",
+            "on-surface": "#131c2a",
+            "on-tertiary-container": "#ddfff8",
+            "on-tertiary-fixed": "#00201c",
+            "tertiary-fixed": "#8cf5e4",
+            "secondary-fixed": "#d9e2ff",
+            "surface-container-highest": "#dae3f7",
+            "on-background": "#131c2a",
+            "surface-container-lowest": "#ffffff",
+            "primary-fixed-dim": "#b3c5ff",
+            "outline-variant": "#c3c6d6",
+            "inverse-surface": "#1F2A44",
+            "inverse-primary": "#b3c5ff",
+            "surface-container": "#e7eeff",
+            "tertiary-fixed-dim": "#6fd8c8",
+            "secondary": "#535e7b",
+            "on-secondary-fixed-variant": "#3b4662",
+            "inverse-on-surface": "#ebf1ff",
+            "tertiary-container": "#008074",
+            "on-primary-fixed": "#00174a",
+            "primary": "#0650cc",
+            "on-secondary-container": "#56607d",
+            "secondary-container": "#d1dcfe",
+            "surface-variant": "#dae3f7",
+            "on-primary-fixed-variant": "#003ea6",
+            "on-secondary-fixed": "#0f1b34",
+            "error": "#d9534f",
+            "on-primary-container": "#f9f7ff",
+            "surface-bright": "#f9f9ff",
+            "surface-dim": "#d1daee",
+            "on-error-container": "#93000a",
+            "surface-container-low": "#f0f3ff",
+            "primary-container": "#356ae6",
+            "background": "#F7F8FA",
+            "on-tertiary": "#ffffff",
+            "outline": "#737685",
+            "on-surface-variant": "#434654",
+            "error-container": "#ffdad6",
+            "secondary-fixed-dim": "#bbc6e7",
+            "surface-container-high": "#dfe8fc",
+            "surface": "#f9f9ff",
+            "on-secondary": "#ffffff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xs": "0.25rem",
+            "space-lg": "1.5rem",
+            "space-sm": "0.5rem",
+            "space-xl": "2rem",
+            "margin": "2rem",
+            "gutter": "1.5rem",
+            "space-md": "1rem"
+          },
+          "fontFamily": {
+            "headline-xl": ["Inter"],
+            "headline-md": ["Inter"],
+            "headline-lg": ["Inter"],
+            "label-md": ["Inter"],
+            "label-xs": ["Inter"],
+            "label-sm": ["Inter"],
+            "headline-sm": ["Inter"],
+            "body-lg": ["Inter"],
+            "body-sm": ["Inter"],
+            "body-md": ["Inter"]
+          },
+          "fontSize": {
+            "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "500" }],
+            "label-xs": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600" }],
+            "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+            "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "600" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }]
+          }
+        },
+      },
+    }
+  </script>
+</head>
+<body class="bg-background text-on-surface antialiased font-body-md min-h-screen flex selection:bg-primary-container selection:text-on-primary">
+<!-- ================= FIXED SIDE NAVIGATION RAIL ================= -->
+<aside class="fixed top-0 left-0 h-screen w-64 z-40 bg-inverse-surface border-r border-outline-variant/20 shadow-sm flex flex-col justify-between p-space-md">
+<div class="flex flex-col gap-space-lg">
+<!-- Brand Monogram Header -->
+<div class="flex items-center gap-space-sm px-space-xs pt-space-xs">
+<div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center text-on-primary font-headline-md font-bold text-headline-md shadow-sm">
+          TD
+        </div>
+<div class="flex flex-col">
+<span class="text-headline-sm font-headline-sm font-bold text-inverse-on-surface tracking-tight">TransitDues</span>
+<span class="text-body-sm font-body-sm text-inverse-on-surface/60 text-xs">Cooperative Ledger</span>
+</div>
+</div>
+<!-- Navigation Links -->
+<nav aria-label="Main Navigation" class="flex flex-col gap-1.5">
+<!-- Dashboard -->
+<a class="text-inverse-on-surface/70 hover:text-inverse-on-surface hover:bg-surface-variant/10 rounded-lg font-medium px-space-md py-space-sm flex items-center gap-space-sm transition-colors text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="dashboard">dashboard</span>
+<span class="">Dashboard</span>
+</a>
+<!-- Stages: ACTIVE (Mandated by active mapping to Stages Management) -->
+<a class="bg-primary-container text-on-primary rounded-lg font-medium px-space-md py-space-sm flex items-center gap-space-sm shadow-sm text-label-md font-label-md transition-transform active:scale-[0.99]" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="location_on" data-weight="fill" style="font-variation-settings: 'FILL' 1;">location_on</span>
+<span class="">Stages</span>
+</a>
+<!-- Operators -->
+<a class="text-inverse-on-surface/70 hover:text-inverse-on-surface hover:bg-surface-variant/10 rounded-lg font-medium px-space-md py-space-sm flex items-center gap-space-sm transition-colors text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="two_wheeler">two_wheeler</span>
+<span class="">Operators</span>
+</a>
+<!-- Due Payments -->
+<a class="text-inverse-on-surface/70 hover:text-inverse-on-surface hover:bg-surface-variant/10 rounded-lg font-medium px-space-md py-space-sm flex items-center gap-space-sm transition-colors text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="receipt_long">receipt_long</span>
+<span class="">Due Payments</span>
+</a>
+</nav>
+</div>
+<!-- Footer Rail Section -->
+<div class="flex flex-col gap-2 pt-space-md border-t border-white/10">
+<div class="px-space-md py-space-xs flex items-center justify-between text-inverse-on-surface/50 text-[11px] font-mono">
+<span class="">STATION ID: KG-04</span>
+<span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+</div>
+<a class="text-inverse-on-surface/70 hover:text-inverse-on-surface hover:bg-surface-variant/10 rounded-lg font-medium px-space-md py-space-sm flex items-center gap-space-sm transition-colors text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="logout">logout</span>
+<span class="">Logout</span>
+</a>
+</div>
+</aside>
+<!-- ================= MAIN VIEWPORT AREA ================= -->
+<div class="flex-1 ml-64 flex flex-col min-w-[1180px] pb-space-xl">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 right-0 z-30 h-16 bg-surface-container-lowest border-b border-outline-variant/30 shadow-sm flex justify-between items-center px-space-xl">
+<div class="flex items-center gap-space-md">
+<nav class="flex items-center gap-2 text-label-sm font-label-sm text-secondary">
+<span class="hover:text-on-surface cursor-pointer">Transit Ledger</span>
+<span class="">/</span>
+<span class="text-on-surface font-semibold">Stages Management</span>
+</nav>
+</div>
+<div class="flex items-center gap-space-lg">
+<!-- Notification Action -->
+<button aria-label="Notifications" class="relative p-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-lg transition-colors" title="Notifications">
+<span class="material-symbols-outlined text-[22px]" data-icon="notifications">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full ring-2 ring-surface-container-lowest"></span>
+</button>
+<div class="h-6 w-px bg-outline-variant/40"></div>
+<!-- Administrator Identity Avatar & Name -->
+<div class="flex items-center gap-space-sm cursor-pointer group">
+<img alt="Admin Co-op Kigali Profile Avatar" class="w-9 h-9 rounded-full object-cover ring-1 ring-outline-variant" data-alt="A distinguished African cooperative manager in formal business attire photographed in a high-key modern municipal office with soft morning window lighting, presenting a professional corporate headshot in a crisp color palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_NL-LINk9hssSjW-cR-duauNThkJHMN3pwd2bdjwL89fLk9AZs8zuOMoo3r15a9qCzsliSIuVAF8sPzOxXXpUbFiiE6B_dY7QadP7pSibiEIpmosZnFAw47eseVow0D8kyNBLlJIxnAKdwSgtIn2hyfyx3vQdZZjZW9DVLTwspVGsDcBseONBIrfKSSU9kq_1kfejM3xGSKP3-47AkAjCwyoNRjQPdSPVTLXP8rgMNNBfD9zBKTCT">
+<div class="flex flex-col text-left">
+<span class="text-label-md font-label-md font-semibold text-on-surface group-hover:text-primary transition-colors leading-tight">Admin Co-op Kigali</span>
+<span class="text-[11px] font-medium text-secondary">Treasury Supervisor</span>
+</div>
+<span class="material-symbols-outlined text-[18px] text-secondary" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+</header>
+<!-- Operational Content Canvas -->
+<main class="px-space-xl pt-space-lg flex flex-col gap-space-lg">
+<!-- Top Title and Primary Actions Header -->
+<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-space-md">
+<div>
+<h1 class="text-headline-xl font-headline-xl text-on-surface tracking-tight">Stages Management</h1>
+<p class="text-body-md font-body-md text-on-surface-variant mt-0.5">Manage moto-taxi stages and their operator capacity.</p>
+</div>
+<!-- Action Bar: Search Input & Add Stage Button -->
+<div class="flex items-center gap-space-md">
+<div class="relative w-80">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-outline pointer-events-none" data-icon="search">search</span>
+<input class="w-full h-10 pl-10 pr-4 bg-surface-container-lowest rounded-lg border border-outline-variant/60 text-body-sm font-body-sm text-on-surface placeholder:text-outline focus:border-primary-container focus:ring-2 focus:ring-primary-container/20 transition-all outline-none" placeholder="Search by stage name or location" type="text">
+</div>
+<button class="h-10 px-4 bg-primary-container hover:bg-[#2752B8] text-on-primary rounded-lg text-label-md font-label-md font-medium flex items-center gap-2 shadow-sm transition-all active:scale-[0.99]">
+<span class="material-symbols-outlined text-[20px]" data-icon="add">add</span>
+<span class="">+ Add Stage</span>
+</button>
+</div>
+</div>
+<!-- Quick Metrics Bento Bar (Municipal Cooperative Health) -->
+<div class="grid grid-cols-4 gap-gutter">
+<div class="bg-surface-container-lowest border border-outline-variant/40 rounded-xl p-space-md shadow-sm">
+<div class="text-label-xs font-label-xs text-secondary uppercase tracking-wider">Total Active Stages</div>
+<div class="text-headline-lg font-headline-lg text-on-surface mt-1">12 Parks</div>
+<div class="text-label-sm font-label-sm text-tertiary font-medium flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="check_circle">check_circle</span>
+            All verified in Kigali
+          </div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant/40 rounded-xl p-space-md shadow-sm">
+<div class="text-label-xs font-label-xs text-secondary uppercase tracking-wider">Total Cooperative Capacity</div>
+<div class="text-headline-lg font-headline-lg text-on-surface mt-1">260 Bays</div>
+<div class="text-label-sm font-label-sm text-secondary font-medium mt-1">
+            Across 3 urban districts
+          </div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant/40 rounded-xl p-space-md shadow-sm">
+<div class="text-label-xs font-label-xs text-secondary uppercase tracking-wider">Assigned Moto Operators</div>
+<div class="text-headline-lg font-headline-lg text-on-surface mt-1">228 Riders</div>
+<div class="text-label-sm font-label-sm text-primary font-medium mt-1">
+            87.6% Aggregate fill rate
+          </div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant/40 rounded-xl p-space-md shadow-sm">
+<div class="text-label-xs font-label-xs text-secondary uppercase tracking-wider">Immediate Availability</div>
+<div class="text-headline-lg font-headline-lg text-on-surface mt-1">32 Slots</div>
+<div class="text-label-sm font-label-sm text-[#B8771B] font-medium flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="hourglass_top">hourglass_top</span>
+            Kimironko at maximum
+          </div>
+</div>
+</div>
+<!-- Data Table Card Container -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant/40 shadow-sm overflow-hidden flex flex-col">
+<!-- Table Shell Filter bar -->
+<div class="p-space-md border-b border-outline-variant/30 flex items-center justify-between bg-surface-container-lowest">
+<div class="flex items-center gap-space-sm">
+<span class="text-label-md font-label-md font-semibold text-on-surface">Registered Stage Locations</span>
+<span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-surface-container text-primary">5 of 12 Displayed</span>
+</div>
+<div class="flex items-center gap-2">
+<button class="h-8 px-3 rounded-lg border border-outline-variant/60 bg-surface-container-lowest text-label-sm font-label-sm text-secondary hover:text-on-surface hover:bg-surface-container-low transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]" data-icon="filter_list">filter_list</span>
+<span class="">Filter District</span>
+</button>
+<button class="h-8 px-3 rounded-lg border border-outline-variant/60 bg-surface-container-lowest text-label-sm font-label-sm text-secondary hover:text-on-surface hover:bg-surface-container-low transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]" data-icon="file_download">file_download</span>
+<span class="">Export CSV</span>
+</button>
+</div>
+</div>
+<!-- Data Table -->
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-background h-10 border-b border-outline-variant/30 text-[11px] font-label-xs uppercase tracking-wider text-secondary">
+<th class="px-space-md py-2 font-semibold w-16">ID</th>
+<th class="px-space-md py-2 font-semibold">Stage Name</th>
+<th class="px-space-md py-2 font-semibold">Location</th>
+<th class="px-space-md py-2 font-semibold text-right">Capacity</th>
+<th class="px-space-md py-2 font-semibold text-right">Registered Operators</th>
+<th class="px-space-md py-2 font-semibold">Availability</th>
+<th class="px-space-md py-2 font-semibold text-right w-44">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/30 text-body-sm font-body-sm">
+<!-- Record 1: Remera -->
+<tr class="h-[52px] hover:bg-background/80 transition-colors">
+<td class="px-space-md py-3 text-secondary font-mono text-xs">#01</td>
+<td class="px-space-md py-3 font-semibold text-on-surface">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+<span class="">Remera</span>
+</div>
+</td>
+<td class="px-space-md py-3 text-on-surface-variant flex items-center gap-1 pt-4">
+<span class="material-symbols-outlined text-[16px] text-outline" data-icon="place">place</span>
+                  Gasabo, Kigali
+                </td>
+<td class="px-space-md py-3 text-right font-medium text-on-surface">20</td>
+<td class="px-space-md py-3 text-right font-medium text-on-surface">18</td>
+<td class="px-space-md py-3">
+<span class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-label-sm font-label-sm font-medium bg-[#2A9D8F]/15 text-[#2A9D8F]">
+<span class="w-1.5 h-1.5 rounded-full bg-[#2A9D8F]"></span>
+                    2 spaces
+                  </span>
+</td>
+<td class="px-space-md py-3 text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1.5 text-secondary hover:text-primary hover:bg-surface-container rounded-md transition-colors" title="View Details">
+<span class="material-symbols-outlined text-[18px]" data-icon="visibility">visibility</span>
+</button>
+<button class="p-1.5 text-secondary hover:text-primary hover:bg-surface-container rounded-md transition-colors" title="Edit Stage">
+<span class="material-symbols-outlined text-[18px]" data-icon="edit">edit</span>
+</button>
+<button class="p-1.5 text-error hover:text-on-error hover:bg-error rounded-md transition-colors" onclick="document.getElementById('delete-modal').classList.remove('hidden')" title="Delete Stage">
+<span class="material-symbols-outlined text-[18px]" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Record 2: Nyabugogo -->
+<tr class="h-[52px] hover:bg-background/80 transition-colors">
+<td class="px-space-md py-3 text-secondary font-mono text-xs">#02</td>
+<td class="px-space-md py-3 font-semibold text-on-surface">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+<span class="">Nyabugogo</span>
+</div>
+</td>
+<td class="px-space-md py-3 text-on-surface-variant flex items-center gap-1 pt-4">
+<span class="material-symbols-outlined text-[16px] text-outline" data-icon="place">place</span>
+                  Nyarugenge, Kigali
+                </td>
+<td class="px-space-md py-3 text-right font-medium text-on-surface">30</td>
+<td class="px-space-md py-3 text-right font-medium text-on-surface">25</td>
+<td class="px-space-md py-3">
+<span class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-label-sm font-label-sm font-medium bg-[#2A9D8F]/15 text-[#2A9D8F]">
+<span class="w-1.5 h-1.5 rounded-full bg-[#2A9D8F]"></span>
+                    5 spaces
+                  </span>
+</td>
+<td class="px-space-md py-3 text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1.5 text-secondary hover:text-primary hover:bg-surface-container rounded-md transition-colors" title="View Details">
+<span class="material-symbols-outlined text-[18px]" data-icon="visibility">visibility</span>
+</button>
+<button class="p-1.5 text-secondary hover:text-primary hover:bg-surface-container rounded-md transition-colors" title="Edit Stage">
+<span class="material-symbols-outlined text-[18px]" data-icon="edit">edit</span>
+</button>
+<button class="p-1.5 text-error hover:text-on-error hover:bg-error rounded-md transition-colors" onclick="document.getElementById('delete-modal').classList.remove('hidden')" title="Delete Stage">
+<span class="material-symbols-outlined text-[18px]" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Record 3: Kimironko (Full Flagged) -->
+<tr class="h-[52px] bg-red-50/30 hover:bg-red-50/60 transition-colors">
+<td class="px-space-md py-3 text-secondary font-mono text-xs">#03</td>
+<td class="px-space-md py-3 font-semibold text-on-surface">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-error"></span>
+<span class="">Kimironko</span>
+</div>
+</td>
+<td class="px-space-md py-3 text-on-surface-variant flex items-center gap-1 pt-4">
+<span class="material-symbols-outlined text-[16px] text-outline" data-icon="place">place</span>
+                  Gasabo, Kigali
+                </td>
+<td class="px-space-md py-3 text-right font-medium text-on-surface">15</td>
+<td class="px-space-md py-3 text-right font-medium text-on-surface">15</td>
+<td class="px-space-md py-3">
+<span class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-label-sm font-label-sm font-semibold bg-error/15 text-error">
+<span class="material-symbols-outlined text-[13px]" data-icon="block">block</span>
+                    Full
+                  </span>
+</td>
+<td class="px-space-md py-3 text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1.5 text-secondary hover:text-primary hover:bg-surface-container rounded-md transition-colors" title="View Details">
+<span class="material-symbols-outlined text-[18px]" data-icon="visibility">visibility</span>
+</button>
+<button class="p-1.5 text-secondary hover:text-primary hover:bg-surface-container rounded-md transition-colors" title="Edit Stage">
+<span class="material-symbols-outlined text-[18px]" data-icon="edit">edit</span>
+</button>
+<button class="p-1.5 text-error hover:text-on-error hover:bg-error rounded-md transition-colors" onclick="document.getElementById('delete-modal').classList.remove('hidden')" title="Delete Stage">
+<span class="material-symbols-outlined text-[18px]" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Record 4: Kicukiro Centre -->
+<tr class="h-[52px] hover:bg-background/80 transition-colors">
+<td class="px-space-md py-3 text-secondary font-mono text-xs">#04</td>
+<td class="px-space-md py-3 font-semibold text-on-surface">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+<span class="">Kicukiro Centre</span>
+</div>
+</td>
+<td class="px-space-md py-3 text-on-surface-variant flex items-center gap-1 pt-4">
+<span class="material-symbols-outlined text-[16px] text-outline" data-icon="place">place</span>
+                  Kicukiro, Kigali
+                </td>
+<td class="px-space-md py-3 text-right font-medium text-on-surface">25</td>
+<td class="px-space-md py-3 text-right font-medium text-on-surface">21</td>
+<td class="px-space-md py-3">
+<span class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-label-sm font-label-sm font-medium bg-[#2A9D8F]/15 text-[#2A9D8F]">
+<span class="w-1.5 h-1.5 rounded-full bg-[#2A9D8F]"></span>
+                    4 spaces
+                  </span>
+</td>
+<td class="px-space-md py-3 text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1.5 text-secondary hover:text-primary hover:bg-surface-container rounded-md transition-colors" title="View Details">
+<span class="material-symbols-outlined text-[18px]" data-icon="visibility">visibility</span>
+</button>
+<button class="p-1.5 text-secondary hover:text-primary hover:bg-surface-container rounded-md transition-colors" title="Edit Stage">
+<span class="material-symbols-outlined text-[18px]" data-icon="edit">edit</span>
+</button>
+<button class="p-1.5 text-error hover:text-on-error hover:bg-error rounded-md transition-colors" onclick="document.getElementById('delete-modal').classList.remove('hidden')" title="Delete Stage">
+<span class="material-symbols-outlined text-[18px]" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Record 5: Nyamirambo -->
+<tr class="h-[52px] hover:bg-background/80 transition-colors">
+<td class="px-space-md py-3 text-secondary font-mono text-xs">#05</td>
+<td class="px-space-md py-3 font-semibold text-on-surface">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+<span class="">Nyamirambo</span>
+</div>
+</td>
+<td class="px-space-md py-3 text-on-surface-variant flex items-center gap-1 pt-4">
+<span class="material-symbols-outlined text-[16px] text-outline" data-icon="place">place</span>
+                  Nyarugenge, Kigali
+                </td>
+<td class="px-space-md py-3 text-right font-medium text-on-surface">20</td>
+<td class="px-space-md py-3 text-right font-medium text-on-surface">12</td>
+<td class="px-space-md py-3">
+<span class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-label-sm font-label-sm font-medium bg-[#2A9D8F]/15 text-[#2A9D8F]">
+<span class="w-1.5 h-1.5 rounded-full bg-[#2A9D8F]"></span>
+                    8 spaces
+                  </span>
+</td>
+<td class="px-space-md py-3 text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1.5 text-secondary hover:text-primary hover:bg-surface-container rounded-md transition-colors" title="View Details">
+<span class="material-symbols-outlined text-[18px]" data-icon="visibility">visibility</span>
+</button>
+<button class="p-1.5 text-secondary hover:text-primary hover:bg-surface-container rounded-md transition-colors" title="Edit Stage">
+<span class="material-symbols-outlined text-[18px]" data-icon="edit">edit</span>
+</button>
+<button class="p-1.5 text-error hover:text-on-error hover:bg-error rounded-md transition-colors" onclick="document.getElementById('delete-modal').classList.remove('hidden')" title="Delete Stage">
+<span class="material-symbols-outlined text-[18px]" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Bottom Pagination Bar -->
+<div class="h-14 px-space-md border-t border-outline-variant/30 flex items-center justify-between bg-surface-container-lowest">
+<div class="text-body-sm font-body-sm text-secondary">
+            Showing <span class="font-medium text-on-surface">1</span> to <span class="font-medium text-on-surface">5</span> of <span class="font-medium text-on-surface">12</span> stages
+          </div>
+<div class="flex items-center gap-1">
+<button class="h-8 px-2.5 rounded-lg border border-outline-variant/40 text-secondary hover:bg-background disabled:opacity-40 text-label-sm font-label-sm" disabled="">
+              Previous
+            </button>
+<button class="w-8 h-8 rounded-lg bg-primary-container text-on-primary font-semibold text-label-sm font-label-sm shadow-sm">
+              1
+            </button>
+<button class="w-8 h-8 rounded-lg border border-outline-variant/40 hover:bg-background text-on-surface font-medium text-label-sm font-label-sm transition-colors">
+              2
+            </button>
+<button class="w-8 h-8 rounded-lg border border-outline-variant/40 hover:bg-background text-on-surface font-medium text-label-sm font-label-sm transition-colors">
+              3
+            </button>
+<button class="h-8 px-2.5 rounded-lg border border-outline-variant/40 text-on-surface hover:bg-background text-label-sm font-label-sm font-medium transition-colors">
+              Next
+            </button>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- ================= DELETE CONFIRMATION MODAL PREVIEW (LEVEL 3 ELEVATION) ================= -->
+<!-- Demonstrating Delete Confirmation overlay as requested -->
+
+
+
+</body></html>
