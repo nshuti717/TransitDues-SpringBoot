@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:replace="~{fragments/layout :: layout(~{::#content}, 'duepayments', ${duepayment.id} == null ? 'Record Due Payment' : 'Edit Due Payment', 'Record operator daily stage fees or quarterly cooperative municipal taxes.')}">
+    <div id="content">
+        <!-- Breadcrumb Trail -->
+        <nav aria-label="Breadcrumb" class="flex items-center gap-2 text-label-md font-label-md text-secondary mb-space-md">
+            <a class="text-primary-container hover:underline font-medium flex items-center gap-1" href="/web/duepayments">
+                <span class="material-symbols-outlined text-sm" data-icon="arrow_back">arrow_back</span>
+                <span>Due Payments</span>
+            </a>
+            <span class="text-secondary/50">/</span>
+            <span class="text-on-surface font-medium" th:text="${duepayment.id} == null ? 'Record Payment' : 'Edit Payment'">Record Payment</span>
+        </nav>
+
+        <!-- Page Header -->
+        <div class="mb-space-lg">
+            <h1 class="text-headline-lg font-headline-lg text-on-surface font-bold tracking-tight" th:text="${duepayment.id} == null ? 'Record Due Payment' : 'Edit Due Payment'">Record Due Payment</h1>
+            <p class="text-body-sm font-body-sm text-on-surface-variant mt-1">
+                Record operator daily stage fees or quarterly cooperative municipal taxes.
+            </p>
+        </div>
+
+        <!-- Dismissible Error Banner (operator not found) -->
+        <div id="duepayment-error-banner" class="mb-space-lg rounded-lg bg-error-container/40 border border-error/30 p-space-md flex items-start gap-space-sm" th:if="${errorMessage}">
+            <span class="material-symbols-outlined text-error text-[20px] mt-0.5" data-icon="error">error</span>
+            <div class="flex-1 text-body-sm font-body-sm text-on-error-container leading-relaxed" th:text="${errorMessage}">Error message</div>
+            <button type="button" aria-label="Dismiss" class="text-error hover:text-on-error-container transition-colors"
+                    onclick="document.getElementById('duepayment-error-banner').remove()">
+                <span class="material-symbols-outlined text-[18px]">close</span>
+            </button>
+        </div>
+
+        <!-- Main Form Card -->
+        <section class="bg-surface-container-lowest border border-outline-variant/30 rounded-lg p-space-xl shadow-sm">
+            <!-- Information Note Panel -->
+            <div class="mb-space-lg p-space-md rounded-lg bg-surface-container border border-primary-fixed flex items-start gap-3 text-body-sm font-body-sm text-on-secondary-container">
+                <span class="material-symbols-outlined text-[20px] text-primary-container shrink-0 mt-0.5" data-icon="info">info</span>
+                <div>
+                    <p class="font-medium text-on-surface text-label-sm font-label-sm">Operational Protocol Note</p>
+                    <p class="mt-0.5">Payments can only be recorded for registered operators. The payment date must be today or a past date.</p>
+                </div>
+            </div>
+
+            <form class="space-y-space-lg" method="post"
+                  th:action="${duepayment.id} == null ? @{/web/duepayments} : @{/web/duepayments/{id}(id=${duepayment.id})}"
+                  th:object="${duepayment}">
+
+                <!-- Operator Selection -->
+                <div class="space-y-1.5">
+                    <label class="block text-label-md font-label-md text-on-surface font-semibold" for="operator">
+                        Operator <span class="text-error">*</span>
+                    </label>
+                    <div class="relative">
+                        <select class="w-full h-11 px-3 pr-10 rounded-lg border border-outline-variant/50 bg-surface-container-lowest text-on-surface text-body-md font-body-md focus:outline-none focus:border-primary-container focus:ring-2 focus:ring-primary-container/20 transition-all appearance-none cursor-pointer"
+                                id="operator" th:field="*{operator}" required="required">
+                            <option disabled="disabled" value="">Choose an operator...</option>
+                            <option th:each="o : ${operators}" th:text="${o.fullName} + ' (' + ${o.plateNumber} + ')'" th:value="${o.id}">Operator Name (Plate)</option>
+                        </select>
+                    </div>
+                    <p class="text-label-xs font-label-xs text-on-surface-variant flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[14px] text-tertiary" data-icon="verified_user">verified_user</span>
+                        Select from currently registered operators.
+                    </p>
+                </div>
+
+                <!-- Amount & Payment Type -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-space-md">
+                    <div class="space-y-1.5">
+                        <label class="block text-label-md font-label-md text-on-surface font-semibold" for="amount">
+                            Amount (RWF) <span class="text-error">*</span>
+                        </label>
+                        <div class="relative">
+                            <input class="w-full h-11 pl-3 pr-14 rounded-lg bg-surface-container-lowest text-on-surface font-medium text-body-md font-body-md focus:outline-none focus:ring-2 transition-all font-mono"
+                                   th:classappend="${#fields.hasErrors('amount')} ? 'border border-error focus:border-error focus:ring-error/20' : 'border border-outline-variant/50 focus:border-primary-container focus:ring-primary-container/20'"
+                                   id="amount" min="1" step="50" th:field="*{amount}"
+                                   th:attr="aria-invalid=${#fields.hasErrors('amount')}" type="number"/>
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-label-xs font-label-xs text-on-surface-variant font-bold">RWF</div>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-error text-label-xs font-label-xs" th:if="${#fields.hasErrors('amount')}">
+                            <span class="material-symbols-outlined text-[14px]" data-icon="warning">warning</span>
+                            <span th:errors="*{amount}">Amount must be greater than zero.</span>
+                        </div>
+                        <p class="text-label-xs font-label-xs text-on-surface-variant" th:unless="${#fields.hasErrors('amount')}">
+                            Standard daily due: 1,000 RWF | Quarterly Tax: 5,000 RWF
+                        </p>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="block text-label-md font-label-md text-on-surface font-semibold" for="type">
+                            Payment Type <span class="text-error">*</span>
+                        </label>
+                        <select class="w-full h-11 px-3 pr-10 rounded-lg border border-outline-variant/50 bg-surface-container-lowest text-on-surface text-body-md font-body-md focus:outline-none focus:border-primary-container focus:ring-2 focus:ring-primary-container/20 transition-all appearance-none cursor-pointer"
+                                id="type" th:field="*{type}" required="required">
+                            <option th:value="${T(rw.ac.auca.transitdues.duepayment.domain.PaymentType).DAILY}">Daily</option>
+                            <option th:value="${T(rw.ac.auca.transitdues.duepayment.domain.PaymentType).QUARTERLY_TAX}">Quarterly Tax</option>
+                        </select>
+                        <p class="text-label-xs font-label-xs text-on-surface-variant">
+                            Applies to daily stage clearance or municipal tax ledger.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Date Paid & Status -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-space-md">
+                    <div class="space-y-1.5">
+                        <label class="block text-label-md font-label-md text-on-surface font-semibold" for="datePaid">
+                            Date Paid <span class="text-error">*</span>
+                        </label>
+                        <input class="w-full h-11 px-3 rounded-lg bg-surface-container-lowest text-on-surface text-body-md font-body-md focus:outline-none focus:ring-2 transition-all"
+                               th:classappend="${#fields.hasErrors('datePaid')} ? 'border border-error focus:border-error focus:ring-error/20' : 'border border-outline-variant/50 focus:border-primary-container focus:ring-primary-container/20'"
+                               id="datePaid" th:field="*{datePaid}"
+                               th:attr="aria-invalid=${#fields.hasErrors('datePaid')}" type="date"/>
+                        <div class="rounded p-2 bg-error-container/40 border border-error-container text-on-error-container text-label-xs font-label-xs flex items-start gap-1.5" th:if="${#fields.hasErrors('datePaid')}">
+                            <span class="material-symbols-outlined text-[15px] shrink-0 text-error" data-icon="error">error</span>
+                            <span th:errors="*{datePaid}">The payment date cannot be in the future.</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="block text-label-md font-label-md text-on-surface font-semibold" for="status">
+                            Status <span class="text-error">*</span>
+                        </label>
+                        <select class="w-full h-11 px-3 pr-10 rounded-lg bg-surface-container-lowest text-on-surface text-body-md font-body-md focus:outline-none focus:ring-2 transition-all appearance-none cursor-pointer"
+                                th:classappend="${#fields.hasErrors('status')} ? 'border border-error focus:border-error focus:ring-error/20' : 'border border-outline-variant/50 focus:border-primary-container focus:ring-primary-container/20'"
+                                id="status" th:field="*{status}" required="required">
+                            <option value="Paid">Paid</option>
+                            <option value="Pending">Pending</option>
+                        </select>
+                        <div class="flex items-center gap-1.5 text-error text-label-xs font-label-xs" th:if="${#fields.hasErrors('status')}">
+                            <span class="material-symbols-outlined text-[14px]" data-icon="warning">warning</span>
+                            <span th:errors="*{status}">Status is required.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Action Footer -->
+                <div class="pt-space-lg border-t border-outline-variant/30 flex flex-col sm:flex-row sm:justify-end gap-3">
+                    <a class="h-11 w-full sm:w-auto px-4 rounded-lg border border-outline-variant/50 bg-surface-container-lowest text-on-surface text-label-md font-label-md hover:bg-surface-container transition-colors active:scale-[0.99] flex items-center justify-center"
+                       href="/web/duepayments">
+                        Cancel
+                    </a>
+                    <button class="h-11 w-full sm:w-auto px-6 rounded-lg bg-primary-container text-on-primary text-label-md font-label-md font-medium hover:bg-primary transition-colors shadow-sm active:scale-[0.99] flex items-center justify-center gap-2" type="submit">
+                        <span class="material-symbols-outlined text-[18px]" data-icon="check_circle">check_circle</span>
+                        <span>Save Payment</span>
+                    </button>
+                </div>
+            </form>
+        </section>
+    </div>
+</div>
+</body>
+</html>

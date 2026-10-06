@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<div th:replace="~{fragments/layout :: layout(~{::#content}, 'operators', 'Operators Management', 'Register and manage moto-taxi operators.')}">
+    <div id="content">
+        <!-- Title and Primary Action -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-space-md">
+            <div>
+                <h1 class="text-headline-xl font-headline-xl text-on-surface tracking-tight">Operators Management</h1>
+                <p class="text-body-md font-body-md text-on-surface-variant mt-0.5">Register and manage moto-taxi operators.</p>
+            </div>
+            <a class="h-11 px-4 w-full sm:w-auto bg-primary-container hover:bg-primary text-on-primary rounded-lg text-label-md font-label-md font-medium flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.99]"
+               href="/web/operators/new" sec:authorize="hasRole('ADMIN')">
+                <span class="material-symbols-outlined text-[20px]" data-icon="add">add</span>
+                <span>Add Operator</span>
+            </a>
+        </div>
+
+        <!-- Data Table Card Module -->
+        <section class="bg-surface-container-lowest rounded-lg border border-outline-variant/50 shadow-sm overflow-hidden">
+            <div class="p-space-md border-b border-outline-variant/30 flex items-center justify-between bg-surface-container-lowest">
+                <div class="flex items-center gap-space-sm" th:with="count=${#lists.size(operators)}">
+                    <span class="text-label-md font-label-md font-semibold text-on-surface">Registered Operators</span>
+                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-surface-container text-primary"
+                          th:text="${count} + ' ' + (${count} == 1 ? 'operator' : 'operators')">0 operators</span>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[760px] text-left border-collapse">
+                    <thead>
+                    <tr class="bg-surface-container-low/70 border-b border-outline-variant/40 h-10">
+                        <th class="px-space-md py-2 text-label-xs font-label-xs text-outline uppercase tracking-wider w-16" scope="col">ID</th>
+                        <th class="px-space-md py-2 text-label-xs font-label-xs text-outline uppercase tracking-wider" scope="col">Full Name</th>
+                        <th class="px-space-md py-2 text-label-xs font-label-xs text-outline uppercase tracking-wider" scope="col">Phone Number</th>
+                        <th class="px-space-md py-2 text-label-xs font-label-xs text-outline uppercase tracking-wider" scope="col">Plate Number</th>
+                        <th class="px-space-md py-2 text-label-xs font-label-xs text-outline uppercase tracking-wider" scope="col">Assigned Stage</th>
+                        <th class="px-space-md py-2 text-label-xs font-label-xs text-outline uppercase tracking-wider text-right w-32" scope="col">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody class="divide-y divide-outline-variant/30 text-body-md font-body-md">
+                    <tr th:each="operator, iterStat : ${operators}" class="h-[52px] hover:bg-surface-container-low/40 transition-colors">
+                        <td class="px-space-md py-3 text-outline font-label-md text-label-md"
+                            th:text="'#' + ${#numbers.formatInteger(iterStat.count, 2)}">#01</td>
+                        <td class="px-space-md py-3 font-label-md text-label-md text-on-surface" th:text="${operator.fullName}">Full Name</td>
+                        <td class="px-space-md py-3 text-on-surface-variant font-mono text-body-sm" th:text="${operator.phoneNumber}">0700000000</td>
+                        <td class="px-space-md py-3">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded font-mono text-label-xs text-on-surface bg-surface-container border border-outline-variant/50"
+                                  th:text="${operator.plateNumber}">RAB 123A</span>
+                        </td>
+                        <td class="px-space-md py-3 text-on-surface" th:text="${operator.stage.name}">Stage Name</td>
+                        <td class="px-space-md py-3 text-right">
+                            <div class="inline-flex items-center justify-end gap-1" sec:authorize="hasRole('ADMIN')">
+                                <a class="h-10 w-10 flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container rounded transition-colors"
+                                   th:href="@{/web/operators/{id}/edit(id=${operator.id})}" title="Edit Operator">
+                                    <span class="material-symbols-outlined text-lg" data-icon="edit">edit</span>
+                                </a>
+                                <form th:action="@{/web/operators/{id}/delete(id=${operator.id})}" method="post" class="inline"
+                                      onsubmit="return confirm('Delete this operator?');">
+                                    <button class="h-10 w-10 flex items-center justify-center text-error hover:bg-error-container/30 rounded transition-colors" title="Delete Operator" type="submit">
+                                        <span class="material-symbols-outlined text-lg" data-icon="delete">delete</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(operators)}">
+                        <td class="px-space-md py-6 text-center text-on-surface-variant" colspan="6">No operators registered yet.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</div>
+</body>
+</html>
