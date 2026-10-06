@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Access Denied - TransitDues Cooperative Ledger</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-tint": "#1555d1",
+            "on-primary": "#ffffff",
+            "on-error": "#ffffff",
+            "primary-fixed": "#dbe1ff",
+            "tertiary": "#00655b",
+            "on-tertiary-fixed-variant": "#005048",
+            "on-surface": "#131c2a",
+            "on-tertiary-container": "#ddfff8",
+            "on-tertiary-fixed": "#00201c",
+            "tertiary-fixed": "#8cf5e4",
+            "secondary-fixed": "#d9e2ff",
+            "surface-container-highest": "#dae3f7",
+            "on-background": "#131c2a",
+            "surface-container-lowest": "#ffffff",
+            "primary-fixed-dim": "#b3c5ff",
+            "outline-variant": "#c3c6d6",
+            "inverse-surface": "#283140",
+            "inverse-primary": "#b3c5ff",
+            "surface-container": "#e7eeff",
+            "tertiary-fixed-dim": "#6fd8c8",
+            "secondary": "#535e7b",
+            "on-secondary-fixed-variant": "#3b4662",
+            "inverse-on-surface": "#ebf1ff",
+            "tertiary-container": "#008074",
+            "on-primary-fixed": "#00174a",
+            "primary": "#0650cc",
+            "on-secondary-container": "#56607d",
+            "secondary-container": "#d1dcfe",
+            "surface-variant": "#dae3f7",
+            "on-primary-fixed-variant": "#003ea6",
+            "on-secondary-fixed": "#0f1b34",
+            "error": "#ba1a1a",
+            "on-primary-container": "#f9f7ff",
+            "surface-bright": "#f9f9ff",
+            "surface-dim": "#d1daee",
+            "on-error-container": "#93000a",
+            "surface-container-low": "#f0f3ff",
+            "primary-container": "#356ae6",
+            "background": "#f9f9ff",
+            "on-tertiary": "#ffffff",
+            "outline": "#737685",
+            "on-surface-variant": "#434654",
+            "error-container": "#ffdad6",
+            "secondary-fixed-dim": "#bbc6e7",
+            "surface-container-high": "#dfe8fc",
+            "surface": "#f9f9ff",
+            "on-secondary": "#ffffff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xs": "0.25rem",
+            "space-lg": "1.5rem",
+            "space-sm": "0.5rem",
+            "space-xl": "2rem",
+            "margin": "2rem",
+            "gutter": "1.5rem",
+            "space-md": "1rem"
+          },
+          "fontFamily": {
+            "headline-xl": ["Inter"],
+            "headline-md": ["Inter"],
+            "headline-lg": ["Inter"],
+            "label-md": ["Inter"],
+            "label-xs": ["Inter"],
+            "label-sm": ["Inter"],
+            "headline-sm": ["Inter"],
+            "body-lg": ["Inter"],
+            "body-sm": ["Inter"],
+            "body-md": ["Inter"]
+          },
+          "fontSize": {
+            "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "500" }],
+            "label-xs": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600" }],
+            "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+            "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "600" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }]
+          }
+        },
+      },
+    }
+  </script>
+</head>
+<body class="bg-surface font-body-md text-on-surface antialiased min-h-screen flex items-center justify-center selection:bg-primary-fixed selection:text-on-primary-fixed">
+<main class="w-full max-w-md px-space-md">
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant/40 shadow-sm p-space-xl text-center">
+<div class="mx-auto mb-space-md h-14 w-14 rounded-full bg-error-container/40 border border-error/30 flex items-center justify-center">
+<span class="material-symbols-outlined text-error text-[28px]" data-icon="lock">lock</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface mb-space-xs">Access denied</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+          You do not have permission to view this page.
+        </p>
+<div class="mt-space-md rounded bg-error-container/40 border border-error/30 p-space-sm text-left flex items-start gap-space-sm"
+     sec:authorize="!hasAnyRole('ADMIN','FINANCE_OFFICER')">
+<span class="material-symbols-outlined text-error text-[18px] mt-0.5" data-icon="error">error</span>
+<div class="font-body-sm text-body-sm text-on-error-container leading-tight">
+            Your account has no role assigned. Ask an administrator to add your email.
+          </div>
+</div>
+<p class="font-label-sm text-label-sm text-secondary mt-space-lg"
+   th:text="${'Signed in as ' + (currentUserName != null and currentUserName != '' ? currentUserName : 'your account') + (currentUserSubtitle != null and currentUserSubtitle != '' ? ' (' + currentUserSubtitle + ')' : '')}">
+          Signed in as Jane Doe (jane.doe@example.com)
+        </p>
+<div class="mt-space-lg flex flex-col gap-space-sm">
+<a class="w-full bg-primary-container text-on-primary py-2.5 px-space-md rounded-lg font-label-md text-label-md shadow-sm hover:bg-primary transition-all duration-150 flex items-center justify-center gap-space-sm active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-primary-container/40"
+   href="/" sec:authorize="hasAnyRole('ADMIN','FINANCE_OFFICER')">
+<span class="material-symbols-outlined text-[18px]" data-icon="arrow_back">arrow_back</span>
+<span>Back to dashboard</span>
+</a>
+<form method="post" th:action="@{/logout}">
+<button class="w-full bg-surface-container-lowest text-on-surface py-2.5 px-space-md rounded-lg font-label-md text-label-md shadow-sm border border-outline-variant/60 hover:bg-surface-container-low transition-all duration-150 flex items-center justify-center gap-space-sm active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-primary-container/40"
+        type="submit">
+<span class="material-symbols-outlined text-[18px]" data-icon="logout">logout</span>
+<span>Sign out</span>
+</button>
+</form>
+</div>
+</div>
+</main>
+</body>
+</html>

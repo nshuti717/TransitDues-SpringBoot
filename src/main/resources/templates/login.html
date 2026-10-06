@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Login - TransitDues Cooperative Ledger</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-tint": "#1555d1",
+            "on-primary": "#ffffff",
+            "on-error": "#ffffff",
+            "primary-fixed": "#dbe1ff",
+            "tertiary": "#00655b",
+            "on-tertiary-fixed-variant": "#005048",
+            "on-surface": "#131c2a",
+            "on-tertiary-container": "#ddfff8",
+            "on-tertiary-fixed": "#00201c",
+            "tertiary-fixed": "#8cf5e4",
+            "secondary-fixed": "#d9e2ff",
+            "surface-container-highest": "#dae3f7",
+            "on-background": "#131c2a",
+            "surface-container-lowest": "#ffffff",
+            "primary-fixed-dim": "#b3c5ff",
+            "outline-variant": "#c3c6d6",
+            "inverse-surface": "#283140",
+            "inverse-primary": "#b3c5ff",
+            "surface-container": "#e7eeff",
+            "tertiary-fixed-dim": "#6fd8c8",
+            "secondary": "#535e7b",
+            "on-secondary-fixed-variant": "#3b4662",
+            "inverse-on-surface": "#ebf1ff",
+            "tertiary-container": "#008074",
+            "on-primary-fixed": "#00174a",
+            "primary": "#0650cc",
+            "on-secondary-container": "#56607d",
+            "secondary-container": "#d1dcfe",
+            "surface-variant": "#dae3f7",
+            "on-primary-fixed-variant": "#003ea6",
+            "on-secondary-fixed": "#0f1b34",
+            "error": "#ba1a1a",
+            "on-primary-container": "#f9f7ff",
+            "surface-bright": "#f9f9ff",
+            "surface-dim": "#d1daee",
+            "on-error-container": "#93000a",
+            "surface-container-low": "#f0f3ff",
+            "primary-container": "#356ae6",
+            "background": "#f9f9ff",
+            "on-tertiary": "#ffffff",
+            "outline": "#737685",
+            "on-surface-variant": "#434654",
+            "error-container": "#ffdad6",
+            "secondary-fixed-dim": "#bbc6e7",
+            "surface-container-high": "#dfe8fc",
+            "surface": "#f9f9ff",
+            "on-secondary": "#ffffff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xs": "0.25rem",
+            "space-lg": "1.5rem",
+            "space-sm": "0.5rem",
+            "space-xl": "2rem",
+            "margin": "2rem",
+            "gutter": "1.5rem",
+            "space-md": "1rem"
+          },
+          "fontFamily": {
+            "headline-xl": ["Inter"],
+            "headline-md": ["Inter"],
+            "headline-lg": ["Inter"],
+            "label-md": ["Inter"],
+            "label-xs": ["Inter"],
+            "label-sm": ["Inter"],
+            "headline-sm": ["Inter"],
+            "body-lg": ["Inter"],
+            "body-sm": ["Inter"],
+            "body-md": ["Inter"]
+          },
+          "fontSize": {
+            "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "500" }],
+            "label-xs": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600" }],
+            "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+            "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "600" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }]
+          }
+        },
+      },
+    }
+  </script>
+</head>
+<body class="bg-surface font-body-md text-on-surface antialiased min-h-screen flex flex-col justify-between selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- Header Civic Sub-bar -->
+<header class="w-full py-space-sm px-space-xl flex items-center justify-between border-b border-outline-variant/30 bg-surface-container-lowest">
+<div class="flex items-center gap-space-sm">
+<div class="w-2 h-2 rounded-full bg-tertiary-container animate-pulse"></div>
+<span class="font-label-xs text-label-xs text-secondary uppercase tracking-wider">Kigali Operational Hub • District Registry Connected</span>
+</div>
+<div class="flex items-center gap-space-sm text-secondary font-label-xs text-label-xs">
+<span class="material-symbols-outlined text-[16px] text-outline" data-icon="verified_user">verified_user</span>
+<span>Secured End-to-End SSL</span>
+</div>
+</header>
+<!-- Main Centered Authentication Stage -->
+<main class="flex-1 flex items-center justify-center px-space-md py-space-xl">
+<div class="w-full max-w-md">
+<!-- Authentication Card (Elevation Level 1) -->
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant/40 shadow-sm p-space-xl">
+<!-- Monogram / Brand Icon -->
+<div class="flex flex-col items-center text-center">
+<div class="w-12 h-12 rounded-lg bg-inverse-surface flex items-center justify-center shadow-sm mb-space-md transition-transform duration-100 active:scale-[0.99]">
+<span class="font-headline-md text-headline-md font-bold text-inverse-on-surface tracking-tight">TD</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface">Welcome to TransitDues</h1>
+<p class="font-body-sm text-body-sm text-secondary mt-space-xs mb-space-lg">
+            Moto-Taxi Cooperative Dues and Transparency System
+          </p>
+</div>
+<!-- Login failure banner -->
+<div class="mb-space-lg rounded bg-error-container/40 border border-error/30 p-space-sm flex items-start gap-space-sm" th:if="${param.error}">
+<span class="material-symbols-outlined text-error text-[18px] mt-0.5" data-icon="error">error</span>
+<div class="font-body-sm text-body-sm text-on-error-container leading-tight">
+            Invalid username or password. Please try again.
+          </div>
+</div>
+<!-- Logout confirmation banner -->
+<div class="mb-space-lg rounded bg-tertiary-container/10 border border-tertiary/30 p-space-sm flex items-start gap-space-sm" th:if="${param.logout}">
+<span class="material-symbols-outlined text-tertiary text-[18px] mt-0.5" data-icon="check_circle">check_circle</span>
+<div class="font-body-sm text-body-sm text-on-surface-variant leading-tight">
+            You have been signed out successfully.
+          </div>
+</div>
+<!-- System Status Banner (Utilitarian Audit Marker) -->
+<div class="mb-space-lg rounded bg-surface-container-low border border-outline-variant/30 p-space-sm flex items-start gap-space-sm" th:unless="${param.error != null or param.logout != null}">
+<span class="material-symbols-outlined text-primary text-[18px] mt-0.5" data-icon="info">info</span>
+<div class="font-body-sm text-body-sm text-on-surface-variant leading-tight">
+            Treasury session active. Please enter your cooperative administrator credentials.
+          </div>
+</div>
+<!-- Login Form -->
+<form class="space-y-space-md" method="post" th:action="@{/login}">
+<!-- Username Input -->
+<div>
+<label class="block font-label-md text-label-md text-on-surface mb-1.5" for="username">
+              Username
+            </label>
+<div class="relative">
+<input autofocus="" class="w-full h-10 px-space-md rounded-lg border border-outline-variant/60 bg-surface-container-lowest text-on-surface font-body-md text-body-md placeholder:text-outline/70 focus:outline-none focus:border-primary-container focus:ring-2 focus:ring-primary-container/20 transition-all duration-150" id="username" name="username" placeholder="admin" required="" type="text"/>
+<div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-outline">
+<span class="material-symbols-outlined text-[18px]" data-icon="person">person</span>
+</div>
+</div>
+</div>
+<!-- Password Input -->
+<div>
+<div class="flex items-center justify-between mb-1.5">
+<label class="block font-label-md text-label-md text-on-surface" for="password">
+                Password
+              </label>
+<a class="font-label-sm text-label-sm text-primary-container hover:text-primary transition-colors focus:outline-none focus:underline" href="#">
+                Forgot password?
+              </a>
+</div>
+<div class="relative">
+<input class="w-full h-10 px-space-md rounded-lg border border-outline-variant/60 bg-surface-container-lowest text-on-surface font-body-md text-body-md placeholder:text-outline/70 focus:outline-none focus:border-primary-container focus:ring-2 focus:ring-primary-container/20 tracking-wider transition-all duration-150" id="password" name="password" placeholder="••••••••" required="" type="password"/>
+<button aria-label="Toggle password visibility" class="absolute inset-y-0 right-0 flex items-center pr-3 text-outline hover:text-on-surface focus:outline-none transition-colors" onclick="const pass = document.getElementById('password'); const icon = this.querySelector('span'); if (pass.type === 'password') { pass.type = 'text'; icon.textContent = 'visibility_off'; } else { pass.type = 'password'; icon.textContent = 'visibility'; }" type="button">
+<span class="material-symbols-outlined text-[18px]" data-icon="visibility">visibility</span>
+</button>
+</div>
+</div>
+<!-- Primary Submit Action -->
+<div class="pt-2">
+<button class="w-full bg-primary-container text-on-primary py-2.5 px-space-md rounded-lg font-label-md text-label-md shadow-sm hover:bg-primary transition-all duration-150 flex items-center justify-center gap-space-sm active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-primary-container/40" type="submit">
+<span>Sign In</span>
+<span class="material-symbols-outlined text-[18px]" data-icon="login">login</span>
+</button>
+</div>
+</form>
+<!-- Divider -->
+<div class="flex items-center gap-space-sm my-space-lg">
+<div class="flex-1 h-px bg-outline-variant/40"></div>
+<span class="font-label-xs text-label-xs text-secondary uppercase tracking-wider">or</span>
+<div class="flex-1 h-px bg-outline-variant/40"></div>
+</div>
+<!-- Google OAuth2 Sign In -->
+<a class="w-full bg-surface-container-lowest text-on-surface py-2.5 px-space-md rounded-lg font-label-md text-label-md shadow-sm border border-outline-variant/60 hover:bg-surface-container-low transition-all duration-150 flex items-center justify-center gap-space-sm active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-primary-container/40"
+   href="/oauth2/authorization/google">
+<span>Sign in with Google</span>
+</a>
+</div>
+<!-- Minimal Institutional Note Below Card -->
+<div class="mt-space-lg text-center">
+<p class="font-body-sm text-body-sm text-secondary">
+          Spring Boot CRUD Administration Portal • Kigali Cooperative Federation
+        </p>
+<p class="font-label-xs text-label-xs text-outline mt-1">
+          Transit Regulatory Compliance Version 2.4.1 (LTS)
+        </p>
+</div>
+</div>
+</main>
+<!-- Standard Utilitarian Footer -->
+<footer class="w-full py-space-sm px-space-xl text-center border-t border-outline-variant/30 bg-surface-container-lowest">
+<div class="flex flex-col sm:flex-row items-center justify-between text-outline font-label-xs text-label-xs gap-2">
+<div>© 2025 TransitDues Kigali Federation. All rights reserved.</div>
+<div class="flex gap-space-md">
+<a class="hover:text-on-surface transition-colors" href="#">Audit Charter</a>
+<span>•</span>
+<a class="hover:text-on-surface transition-colors" href="#">Privacy Notice</a>
+<span>•</span>
+<a class="hover:text-on-surface transition-colors" href="#">Help Desk</a>
+</div>
+</div>
+</footer>
+</body>
+</html>

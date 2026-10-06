@@ -3,6 +3,7 @@ package rw.ac.auca.transitdues.exception;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -45,6 +46,16 @@ public class GlobalExceptionHandler {
                 .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
                 .collect(Collectors.joining("; "));
         return buildErrorResponse(HttpStatus.BAD_REQUEST, message, request);
+    }
+
+    /**
+     * Rethrown (not swallowed into JSON) so it propagates past this @RestControllerAdvice to
+     * Spring Security's ExceptionTranslationFilter, which forwards it to the configured
+     * AccessDeniedHandler (e.g. a styled Access Denied page for the Thymeleaf /web/** views).
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public void handleAccessDeniedException(AccessDeniedException ex) throws AccessDeniedException {
+        throw ex;
     }
 
     @ExceptionHandler(Exception.class)
