@@ -1,7 +1,9 @@
 package rw.ac.auca.transitdues.operator.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
+import rw.ac.auca.transitdues.audit.AuditLogService;
 import rw.ac.auca.transitdues.exception.OperatorNotFoundException;
 import rw.ac.auca.transitdues.exception.StageCapacityExceededException;
 import rw.ac.auca.transitdues.exception.StageNotFoundException;
@@ -19,8 +21,10 @@ public class OperatorServiceImpl implements OperatorService {
 
     private final OperatorRepository operatorRepository;
     private final StageRepository stageRepository;
+    private final AuditLogService auditLogService;
 
     @Override
+    @CacheEvict(cacheNames = "dashboardStats", allEntries = true)
     public Operator createOperator(Operator operator) {
         UUID stageId = operator.getStage().getId();
         Stage stage = stageRepository.findById(stageId)
@@ -33,23 +37,30 @@ public class OperatorServiceImpl implements OperatorService {
         }
 
         operator.setStage(stage);
-        return operatorRepository.save(operator);
+        Operator savedOperator = operatorRepository.save(operator);
+        auditLogService.record("Operator", savedOperator.getId().toString(), "CREATE", savedOperator.getFullName());
+        return savedOperator;
     }
 
     @Override
+    @CacheEvict(cacheNames = "dashboardStats", allEntries = true)
     public Operator updateOperator(UUID id, Operator operator) {
         Operator existingOperator = findOperatorById(id);
         existingOperator.setFullName(operator.getFullName());
         existingOperator.setPhoneNumber(operator.getPhoneNumber());
         existingOperator.setPlateNumber(operator.getPlateNumber());
         existingOperator.setStage(operator.getStage());
-        return operatorRepository.save(existingOperator);
+        Operator savedOperator = operatorRepository.save(existingOperator);
+        auditLogService.record("Operator", savedOperator.getId().toString(), "UPDATE", savedOperator.getFullName());
+        return savedOperator;
     }
 
     @Override
+    @CacheEvict(cacheNames = "dashboardStats", allEntries = true)
     public void deleteOperator(UUID id) {
         Operator operator = findOperatorById(id);
         operatorRepository.delete(operator);
+        auditLogService.record("Operator", operator.getId().toString(), "DELETE", operator.getFullName());
     }
 
     @Override

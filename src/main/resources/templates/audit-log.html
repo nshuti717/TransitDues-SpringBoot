@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<div th:replace="~{fragments/layout :: layout(~{::#content}, 'audit-log', 'Audit Log', 'Review every create, update and delete action taken in the system.')}">
+    <div id="content">
+        <!-- Title -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-space-md">
+            <div>
+                <h1 class="text-headline-xl font-headline-xl text-on-surface tracking-tight">Audit Log</h1>
+                <p class="text-body-md font-body-md text-on-surface-variant mt-0.5">Review every create, update and delete action taken in the system.</p>
+            </div>
+        </div>
+
+        <!-- Data Table Card Container -->
+        <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/40 shadow-sm overflow-hidden flex flex-col">
+            <!-- Table Shell Toolbar -->
+            <div class="p-space-md border-b border-outline-variant/30 flex items-center justify-between bg-surface-container-lowest">
+                <div class="flex items-center gap-space-sm" th:with="count=${#lists.size(logs)}">
+                    <span class="text-label-md font-label-md font-semibold text-on-surface">Recorded Actions</span>
+                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-surface-container text-primary"
+                          th:text="${count} + ' ' + (${count} == 1 ? 'entry' : 'entries')">0 entries</span>
+                </div>
+            </div>
+
+            <!-- Data Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[760px] text-left border-collapse">
+                    <thead>
+                    <tr class="bg-background h-10 border-b border-outline-variant/30 text-[11px] font-label-xs uppercase tracking-wider text-secondary">
+                        <th class="px-space-md py-2 font-semibold">Timestamp</th>
+                        <th class="px-space-md py-2 font-semibold">Entity Type</th>
+                        <th class="px-space-md py-2 font-semibold">Entity ID</th>
+                        <th class="px-space-md py-2 font-semibold">Action</th>
+                        <th class="px-space-md py-2 font-semibold">Performed By</th>
+                        <th class="px-space-md py-2 font-semibold">Details</th>
+                    </tr>
+                    </thead>
+                    <tbody class="divide-y divide-outline-variant/30 text-body-sm font-body-sm">
+                    <tr th:each="log : ${logs}" class="h-[52px] hover:bg-background/80 transition-colors">
+                        <td class="px-space-md py-3 text-on-surface-variant whitespace-nowrap" th:text="${log.timestamp}">2026-01-01T00:00:00</td>
+                        <td class="px-space-md py-3 font-semibold text-on-surface" th:text="${log.entityType}">Entity</td>
+                        <td class="px-space-md py-3 text-secondary font-mono text-xs" th:text="${log.entityId}">id</td>
+                        <td class="px-space-md py-3">
+                            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold"
+                                  th:classappend="${log.action == 'CREATE'} ? 'bg-emerald-100 text-emerald-700' : (${log.action == 'DELETE'} ? 'bg-error-container text-error' : 'bg-surface-container text-primary')"
+                                  th:text="${log.action}">ACTION</span>
+                        </td>
+                        <td class="px-space-md py-3 text-on-surface-variant" th:text="${log.performedBy}">user</td>
+                        <td class="px-space-md py-3 text-on-surface-variant" th:text="${log.details}">details</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(logs)}">
+                        <td class="px-space-md py-6 text-center text-on-surface-variant" colspan="6">No audit entries recorded yet.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Payment Events Table Card Container -->
+        <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/40 shadow-sm overflow-hidden flex flex-col">
+            <!-- Table Shell Toolbar -->
+            <div class="p-space-md border-b border-outline-variant/30 flex items-center justify-between bg-surface-container-lowest">
+                <div class="flex items-center gap-space-sm" th:with="count=${#lists.size(paymentEvents)}">
+                    <span class="text-label-md font-label-md font-semibold text-on-surface">Payment Events (via RabbitMQ)</span>
+                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-surface-container text-primary"
+                          th:text="${count} + ' ' + (${count} == 1 ? 'entry' : 'entries')">0 entries</span>
+                </div>
+            </div>
+
+            <!-- Data Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[760px] text-left border-collapse">
+                    <thead>
+                    <tr class="bg-background h-10 border-b border-outline-variant/30 text-[11px] font-label-xs uppercase tracking-wider text-secondary">
+                        <th class="px-space-md py-2 font-semibold">Occurred At</th>
+                        <th class="px-space-md py-2 font-semibold">Event Type</th>
+                        <th class="px-space-md py-2 font-semibold">Operator</th>
+                        <th class="px-space-md py-2 font-semibold">Amount</th>
+                        <th class="px-space-md py-2 font-semibold">Status</th>
+                        <th class="px-space-md py-2 font-semibold">Performed By</th>
+                    </tr>
+                    </thead>
+                    <tbody class="divide-y divide-outline-variant/30 text-body-sm font-body-sm">
+                    <tr th:each="event : ${paymentEvents}" class="h-[52px] hover:bg-background/80 transition-colors">
+                        <td class="px-space-md py-3 text-on-surface-variant whitespace-nowrap" th:text="${event.occurredAt}">2026-01-01T00:00:00</td>
+                        <td class="px-space-md py-3">
+                            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-surface-container text-primary"
+                                  th:text="${event.eventType}">duepayment.created</span>
+                        </td>
+                        <td class="px-space-md py-3 font-semibold text-on-surface" th:text="${event.operatorName}">Operator</td>
+                        <td class="px-space-md py-3 text-on-surface-variant" th:text="${event.amount}">0</td>
+                        <td class="px-space-md py-3 text-on-surface-variant" th:text="${event.status}">status</td>
+                        <td class="px-space-md py-3 text-on-surface-variant" th:text="${event.performedBy}">user</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(paymentEvents)}">
+                        <td class="px-space-md py-6 text-center text-on-surface-variant" colspan="6">No payment events recorded yet.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
