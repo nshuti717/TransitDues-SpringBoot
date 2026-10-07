@@ -20,9 +20,9 @@
         </div>
 
         <!-- Form Area -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-start">
-            <!-- Left: Primary Form Card -->
-            <div class="lg:col-span-8 bg-surface-container-lowest border border-outline-variant/40 rounded-lg p-8 shadow-sm">
+        <div class="max-w-2xl">
+            <!-- Primary Form Card -->
+            <div class="bg-surface-container-lowest border border-outline-variant/40 rounded-lg p-8 shadow-sm">
                 <form class="space-y-6" method="post" th:action="${stage.id} == null ? @{/web/stages} : @{/web/stages/{id}(id=${stage.id})}" th:object="${stage}">
                     <!-- Stage Name Field -->
                     <div>
@@ -102,30 +102,6 @@
                         </button>
                     </div>
                 </form>
-            </div>
-
-            <!-- Right: Operational Guidelines -->
-            <div class="lg:col-span-4 space-y-4">
-                <div class="bg-surface-container-lowest border border-outline-variant/40 rounded-lg p-5 shadow-sm">
-                    <div class="flex items-center gap-2 mb-3 text-on-surface">
-                        <span class="material-symbols-outlined text-primary" data-icon="checklist">checklist</span>
-                        <h3 class="text-headline-sm font-headline-sm font-semibold">Stage Verification Rules</h3>
-                    </div>
-                    <ul class="space-y-3 text-body-sm font-body-sm text-secondary">
-                        <li class="flex items-start gap-2">
-                            <span class="material-symbols-outlined text-tertiary-container text-sm mt-0.5" data-icon="check_circle">check_circle</span>
-                            <span>Ensure clear road right-of-way approved by the Kigali City Infrastructure Board.</span>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="material-symbols-outlined text-tertiary-container text-sm mt-0.5" data-icon="check_circle">check_circle</span>
-                            <span>Assigned capacity must match marked physical motorcycle bays (minimum 1.2m per unit).</span>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="material-symbols-outlined text-tertiary-container text-sm mt-0.5" data-icon="check_circle">check_circle</span>
-                            <span>Automatic daily dues billing begins 24 hours post-registration for all affiliated moto-taxis.</span>
-                        </li>
-                    </ul>
-                </div>
             </div>
         </div>
     </div>

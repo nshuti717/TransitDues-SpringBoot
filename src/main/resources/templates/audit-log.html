@@ -61,7 +61,7 @@
             <!-- Table Shell Toolbar -->
             <div class="p-space-md border-b border-outline-variant/30 flex items-center justify-between bg-surface-container-lowest">
                 <div class="flex items-center gap-space-sm" th:with="count=${#lists.size(paymentEvents)}">
-                    <span class="text-label-md font-label-md font-semibold text-on-surface">Payment Events (via RabbitMQ)</span>
+                    <span class="text-label-md font-label-md font-semibold text-on-surface">Payment Events</span>
                     <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-surface-container text-primary"
                           th:text="${count} + ' ' + (${count} == 1 ? 'entry' : 'entries')">0 entries</span>
                 </div>

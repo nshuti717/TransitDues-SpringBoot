@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Create an operator account - TransitDues</title>
+<link href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23131c2a'/%3E%3Ctext x='16' y='22' font-family='Arial, sans-serif' font-size='14' font-weight='700' fill='%23ffffff' text-anchor='middle'%3ETD%3C/text%3E%3C/svg%3E" rel="icon"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-tint": "#1555d1",
+            "on-primary": "#ffffff",
+            "on-error": "#ffffff",
+            "primary-fixed": "#dbe1ff",
+            "tertiary": "#00655b",
+            "on-tertiary-fixed-variant": "#005048",
+            "on-surface": "#131c2a",
+            "on-tertiary-container": "#ddfff8",
+            "on-tertiary-fixed": "#00201c",
+            "tertiary-fixed": "#8cf5e4",
+            "secondary-fixed": "#d9e2ff",
+            "surface-container-highest": "#dae3f7",
+            "on-background": "#131c2a",
+            "surface-container-lowest": "#ffffff",
+            "primary-fixed-dim": "#b3c5ff",
+            "outline-variant": "#c3c6d6",
+            "inverse-surface": "#283140",
+            "inverse-primary": "#b3c5ff",
+            "surface-container": "#e7eeff",
+            "tertiary-fixed-dim": "#6fd8c8",
+            "secondary": "#535e7b",
+            "on-secondary-fixed-variant": "#3b4662",
+            "inverse-on-surface": "#ebf1ff",
+            "tertiary-container": "#008074",
+            "on-primary-fixed": "#00174a",
+            "primary": "#0650cc",
+            "on-secondary-container": "#56607d",
+            "secondary-container": "#d1dcfe",
+            "surface-variant": "#dae3f7",
+            "on-primary-fixed-variant": "#003ea6",
+            "on-secondary-fixed": "#0f1b34",
+            "error": "#ba1a1a",
+            "on-primary-container": "#f9f7ff",
+            "surface-bright": "#f9f9ff",
+            "surface-dim": "#d1daee",
+            "on-error-container": "#93000a",
+            "surface-container-low": "#f0f3ff",
+            "primary-container": "#356ae6",
+            "background": "#f9f9ff",
+            "on-tertiary": "#ffffff",
+            "outline": "#737685",
+            "on-surface-variant": "#434654",
+            "error-container": "#ffdad6",
+            "secondary-fixed-dim": "#bbc6e7",
+            "surface-container-high": "#dfe8fc",
+            "surface": "#f9f9ff",
+            "on-secondary": "#ffffff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xs": "0.25rem",
+            "space-lg": "1.5rem",
+            "space-sm": "0.5rem",
+            "space-xl": "2rem",
+            "margin": "2rem",
+            "gutter": "1.5rem",
+            "space-md": "1rem"
+          },
+          "fontFamily": {
+            "headline-xl": ["Inter"],
+            "headline-md": ["Inter"],
+            "headline-lg": ["Inter"],
+            "label-md": ["Inter"],
+            "label-xs": ["Inter"],
+            "label-sm": ["Inter"],
+            "headline-sm": ["Inter"],
+            "body-lg": ["Inter"],
+            "body-sm": ["Inter"],
+            "body-md": ["Inter"]
+          },
+          "fontSize": {
+            "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "500" }],
+            "label-xs": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600" }],
+            "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+            "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "600" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }]
+          }
+        },
+      },
+    }
+  </script>
+</head>
+<body class="bg-surface font-body-md text-on-surface antialiased min-h-screen flex flex-col justify-between selection:bg-primary-fixed selection:text-on-primary-fixed">
+<main class="flex-1 flex items-center justify-center px-space-md py-space-xl">
+<div class="w-full max-w-lg">
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant/40 shadow-sm p-space-xl">
+<div class="flex flex-col items-center text-center">
+<div class="w-12 h-12 rounded-lg bg-inverse-surface flex items-center justify-center shadow-sm mb-space-md">
+<span class="font-headline-md text-headline-md font-bold text-inverse-on-surface tracking-tight">TD</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface">Create an operator account</h1>
+<p class="font-body-sm text-body-sm text-secondary mt-space-xs mb-space-lg">
+            Register as a moto-taxi operator to see your dues in the operator portal.
+          </p>
+</div>
+
+<form method="post" th:action="@{/register}" th:object="${registerForm}" class="space-y-space-md">
+<!-- Full Name -->
+<div>
+<label class="block font-label-md text-label-md text-on-surface mb-1.5" for="fullName">Full Name</label>
+<input class="w-full h-10 px-space-md rounded-lg border bg-surface-container-lowest text-on-surface font-body-md text-body-md focus:outline-none focus:ring-2 transition-all duration-150"
+       th:classappend="${#fields.hasErrors('fullName')} ? 'border-error focus:ring-error/20' : 'border-outline-variant/60 focus:border-primary-container focus:ring-primary-container/20'"
+       id="fullName" th:field="*{fullName}" type="text"/>
+<div class="flex items-center gap-1.5 mt-1 text-error text-label-xs font-label-xs" th:if="${#fields.hasErrors('fullName')}">
+<span th:errors="*{fullName}">Full name is required.</span>
+</div>
+</div>
+
+<!-- Email -->
+<div>
+<label class="block font-label-md text-label-md text-on-surface mb-1.5" for="email">Email</label>
+<input class="w-full h-10 px-space-md rounded-lg border bg-surface-container-lowest text-on-surface font-body-md text-body-md focus:outline-none focus:ring-2 transition-all duration-150"
+       th:classappend="${#fields.hasErrors('email')} ? 'border-error focus:ring-error/20' : 'border-outline-variant/60 focus:border-primary-container focus:ring-primary-container/20'"
+       id="email" th:field="*{email}" type="email"/>
+<div class="flex items-center gap-1.5 mt-1 text-error text-label-xs font-label-xs" th:if="${#fields.hasErrors('email')}">
+<span th:errors="*{email}">Email is required.</span>
+</div>
+</div>
+
+<!-- Phone -->
+<div>
+<label class="block font-label-md text-label-md text-on-surface mb-1.5" for="phoneNumber">Phone</label>
+<input class="w-full h-10 px-space-md rounded-lg border bg-surface-container-lowest text-on-surface font-body-md text-body-md focus:outline-none focus:ring-2 transition-all duration-150"
+       th:classappend="${#fields.hasErrors('phoneNumber')} ? 'border-error focus:ring-error/20' : 'border-outline-variant/60 focus:border-primary-container focus:ring-primary-container/20'"
+       id="phoneNumber" placeholder="07XXXXXXXX" th:field="*{phoneNumber}" type="tel"/>
+<div class="flex items-center gap-1.5 mt-1 text-error text-label-xs font-label-xs" th:if="${#fields.hasErrors('phoneNumber')}">
+<span th:errors="*{phoneNumber}">Phone number must be a valid Rwandan phone number.</span>
+</div>
+</div>
+
+<!-- Plate Number -->
+<div>
+<label class="block font-label-md text-label-md text-on-surface mb-1.5" for="plateNumber">Plate Number</label>
+<input class="w-full h-10 px-space-md rounded-lg border bg-surface-container-lowest text-on-surface uppercase font-body-md text-body-md focus:outline-none focus:ring-2 transition-all duration-150"
+       th:classappend="${#fields.hasErrors('plateNumber')} ? 'border-error focus:ring-error/20' : 'border-outline-variant/60 focus:border-primary-container focus:ring-primary-container/20'"
+       id="plateNumber" placeholder="e.g. RAB 123A" th:field="*{plateNumber}" type="text"/>
+<div class="flex items-center gap-1.5 mt-1 text-error text-label-xs font-label-xs" th:if="${#fields.hasErrors('plateNumber')}">
+<span th:errors="*{plateNumber}">Plate number is required.</span>
+</div>
+</div>
+
+<!-- City (fixed) + Stage -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-space-md">
+<div>
+<label class="block font-label-md text-label-md text-on-surface mb-1.5" for="city">City</label>
+<input class="w-full h-10 px-space-md rounded-lg border border-outline-variant/60 bg-surface-container text-on-surface-variant font-body-md text-body-md" disabled="disabled" id="city" type="text" value="Kigali"/>
+</div>
+<div class="sm:col-span-2">
+<label class="block font-label-md text-label-md text-on-surface mb-1.5" for="stageId">Stage</label>
+<select class="w-full h-10 px-space-md rounded-lg border bg-surface-container-lowest text-on-surface font-body-md text-body-md focus:outline-none focus:ring-2 transition-all duration-150 cursor-pointer"
+        th:classappend="${#fields.hasErrors('stageId')} ? 'border-error focus:ring-error/20' : 'border-outline-variant/60 focus:border-primary-container focus:ring-primary-container/20'"
+        id="stageId" th:field="*{stageId}" th:unless="${#lists.isEmpty(stageOptions)}">
+<option disabled="disabled" value="">Choose a stage...</option>
+<option th:each="option : ${stageOptions}" th:disabled="${option.full}" th:text="${option.label}" th:value="${option.id}">Stage name</option>
+</select>
+<p class="text-label-xs font-label-xs text-on-surface-variant mt-1" th:if="${#lists.isEmpty(stageOptions)}">
+                  No stages are open for registration yet.
+                </p>
+<div class="flex items-center gap-1.5 mt-1 text-error text-label-xs font-label-xs" th:if="${#fields.hasErrors('stageId')}">
+<span th:errors="*{stageId}">Choose a stage.</span>
+</div>
+</div>
+</div>
+
+<!-- Password -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-md">
+<div>
+<label class="block font-label-md text-label-md text-on-surface mb-1.5" for="password">Password</label>
+<input class="w-full h-10 px-space-md rounded-lg border bg-surface-container-lowest text-on-surface font-body-md text-body-md focus:outline-none focus:ring-2 transition-all duration-150"
+       th:classappend="${#fields.hasErrors('password')} ? 'border-error focus:ring-error/20' : 'border-outline-variant/60 focus:border-primary-container focus:ring-primary-container/20'"
+       id="password" th:field="*{password}" type="password"/>
+<div class="flex items-center gap-1.5 mt-1 text-error text-label-xs font-label-xs" th:if="${#fields.hasErrors('password')}">
+<span th:errors="*{password}">Password must be at least 8 characters.</span>
+</div>
+</div>
+<div>
+<label class="block font-label-md text-label-md text-on-surface mb-1.5" for="confirmPassword">Confirm Password</label>
+<input class="w-full h-10 px-space-md rounded-lg border bg-surface-container-lowest text-on-surface font-body-md text-body-md focus:outline-none focus:ring-2 transition-all duration-150"
+       th:classappend="${#fields.hasErrors('confirmPassword')} ? 'border-error focus:ring-error/20' : 'border-outline-variant/60 focus:border-primary-container focus:ring-primary-container/20'"
+       id="confirmPassword" th:field="*{confirmPassword}" type="password"/>
+<div class="flex items-center gap-1.5 mt-1 text-error text-label-xs font-label-xs" th:if="${#fields.hasErrors('confirmPassword')}">
+<span th:errors="*{confirmPassword}">Passwords do not match.</span>
+</div>
+</div>
+</div>
+
+<div class="pt-2">
+<button class="w-full bg-primary-container text-on-primary py-2.5 px-space-md rounded-lg font-label-md text-label-md shadow-sm hover:bg-primary transition-all duration-150 flex items-center justify-center gap-space-sm active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-primary-container/40" type="submit">
+<span>Create account</span>
+</button>
+</div>
+</form>
+
+<div class="mt-space-lg text-center">
+<a class="font-label-sm text-label-sm text-primary-container hover:text-primary transition-colors focus:outline-none focus:underline" href="/login">
+            Already have an account? Sign in
+          </a>
+</div>
+</div>
+</div>
+</main>
+</body>
+</html>

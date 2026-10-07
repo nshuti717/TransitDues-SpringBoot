@@ -2,6 +2,7 @@ package rw.ac.auca.transitdues.config;
 
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -32,7 +33,33 @@ public class CurrentUserAdvice {
             return email != null ? email.toString() : "";
         }
 
-        return "Cooperative Administrator";
+        return currentUserRoleLabel();
+    }
+
+    @ModelAttribute("currentUserRoleLabel")
+    public String currentUserRoleLabel() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
+            return "No role assigned";
+        }
+
+        for (GrantedAuthority authority : authentication.getAuthorities()) {
+            if ("ROLE_ADMIN".equals(authority.getAuthority())) {
+                return "Administrator";
+            }
+        }
+        for (GrantedAuthority authority : authentication.getAuthorities()) {
+            if ("ROLE_FINANCE_OFFICER".equals(authority.getAuthority())) {
+                return "Finance Officer";
+            }
+        }
+        for (GrantedAuthority authority : authentication.getAuthorities()) {
+            if ("ROLE_OPERATOR".equals(authority.getAuthority())) {
+                return "Operator";
+            }
+        }
+
+        return "No role assigned";
     }
 
     @ModelAttribute("currentUserInitials")

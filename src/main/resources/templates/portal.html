@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:replace="~{fragments/layout :: layout(~{::#content}, 'portal', 'My Portal', 'Your operator profile and dues.')}">
+    <div id="content">
+        <div th:if="${operator == null}" class="bg-surface-container-lowest rounded-lg border border-outline-variant/40 shadow-sm p-space-xl text-center">
+            <p class="text-body-md font-body-md text-on-surface-variant">
+                No operator profile is linked to your account yet.
+            </p>
+        </div>
+
+        <div th:if="${operator != null}" class="bg-surface-container-lowest rounded-lg border border-outline-variant/40 shadow-sm overflow-hidden">
+            <div class="px-space-lg py-space-md border-b border-outline-variant/20 bg-surface-container-lowest">
+                <h2 class="text-headline-sm font-headline-sm text-on-surface font-semibold">Operator Profile</h2>
+            </div>
+            <dl class="divide-y divide-outline-variant/20">
+                <div class="px-space-lg py-space-md flex items-center justify-between gap-space-md">
+                    <dt class="text-label-sm font-label-sm text-on-surface-variant">Full Name</dt>
+                    <dd class="text-body-md font-body-md text-on-surface font-medium" th:text="${operator.fullName}">Operator Name</dd>
+                </div>
+                <div class="px-space-lg py-space-md flex items-center justify-between gap-space-md">
+                    <dt class="text-label-sm font-label-sm text-on-surface-variant">Phone</dt>
+                    <dd class="text-body-md font-body-md text-on-surface font-medium font-mono" th:text="${operator.phoneNumber}">0700000000</dd>
+                </div>
+                <div class="px-space-lg py-space-md flex items-center justify-between gap-space-md">
+                    <dt class="text-label-sm font-label-sm text-on-surface-variant">Plate Number</dt>
+                    <dd class="text-body-md font-body-md text-on-surface font-medium font-mono" th:text="${operator.plateNumber}">RAB 123A</dd>
+                </div>
+                <div class="px-space-lg py-space-md flex items-center justify-between gap-space-md">
+                    <dt class="text-label-sm font-label-sm text-on-surface-variant">Stage</dt>
+                    <dd class="text-body-md font-body-md text-on-surface font-medium" th:text="${operator.stage.name}">Stage Name</dd>
+                </div>
+            </dl>
+        </div>
+
+        <div th:if="${operator != null}" class="bg-surface-container-lowest rounded-lg border border-outline-variant/40 shadow-sm p-space-lg text-center">
+            <p class="text-body-md font-body-md text-on-surface-variant">No dues yet</p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

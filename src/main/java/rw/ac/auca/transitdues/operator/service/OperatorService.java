@@ -7,7 +7,16 @@ import java.util.UUID;
 
 public interface OperatorService {
 
-    Operator createOperator(Operator operator);
+    default Operator createOperator(Operator operator) {
+        return createOperator(operator, null);
+    }
+
+    /**
+     * Same checks as {@link #createOperator(Operator)} (stage exists, stage has
+     * capacity), but lets callers with no authenticated principal of their own
+     * (e.g. self-registration) supply who the audit log should credit.
+     */
+    Operator createOperator(Operator operator, String performedByOverride);
 
     Operator updateOperator(UUID id, Operator operator);
 

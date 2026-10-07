@@ -9,10 +9,15 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.*;
+import rw.ac.auca.transitdues.exception.DuplicateEmailException;
+import rw.ac.auca.transitdues.exception.DuplicatePhoneException;
+import rw.ac.auca.transitdues.exception.DuplicatePlateException;
+import rw.ac.auca.transitdues.exception.InvalidRegistrationException;
 import rw.ac.auca.transitdues.exception.StageCapacityExceededException;
 import rw.ac.auca.transitdues.exception.StageNotFoundException;
 import rw.ac.auca.transitdues.operator.domain.Operator;
 import rw.ac.auca.transitdues.operator.service.OperatorService;
+import rw.ac.auca.transitdues.registration.RegistrationService;
 import rw.ac.auca.transitdues.stage.domain.Stage;
 import rw.ac.auca.transitdues.stage.service.StageService;
 
@@ -26,6 +31,7 @@ public class OperatorWebController {
 
     private final OperatorService operatorService;
     private final StageService stageService;
+    private final RegistrationService registrationService;
 
     @InitBinder
     public void initBinder(WebDataBinder binder) {
@@ -62,14 +68,18 @@ public class OperatorWebController {
 
     @PostMapping("")
     @PreAuthorize("hasRole('ADMIN')")
-    public String createOperator(@Valid @ModelAttribute("operator") Operator operator, BindingResult bindingResult, Model model) {
+    public String createOperator(@Valid @ModelAttribute("operator") Operator operator, BindingResult bindingResult,
+                                  @RequestParam(required = false) String operatorEmail,
+                                  @RequestParam(required = false) String operatorInitialPassword,
+                                  Model model) {
         if (bindingResult.hasErrors()) {
             model.addAttribute("stages", stageService.findAllStages());
             return "operators/form";
         }
         try {
-            operatorService.createOperator(operator);
-        } catch (StageNotFoundException | StageCapacityExceededException ex) {
+            registrationService.createOperatorWithOptionalLogin(operator, operatorEmail, operatorInitialPassword);
+        } catch (StageNotFoundException | StageCapacityExceededException | DuplicateEmailException
+                 | DuplicatePhoneException | DuplicatePlateException | InvalidRegistrationException ex) {
             model.addAttribute("errorMessage", ex.getMessage());
             model.addAttribute("stages", stageService.findAllStages());
             return "operators/form";
@@ -94,7 +104,7 @@ public class OperatorWebController {
         }
         try {
             operatorService.updateOperator(id, operator);
-        } catch (StageNotFoundException | StageCapacityExceededException ex) {
+        } catch (StageNotFoundException | StageCapacityExceededException | DuplicatePlateException ex) {
             model.addAttribute("errorMessage", ex.getMessage());
             model.addAttribute("stages", stageService.findAllStages());
             return "operators/form";

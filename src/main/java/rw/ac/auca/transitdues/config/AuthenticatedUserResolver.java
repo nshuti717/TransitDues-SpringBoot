@@ -52,4 +52,19 @@ public final class AuthenticatedUserResolver {
 
         return authentication.getName();
     }
+
+    /**
+     * Same as {@link #resolveAuditIdentity(Authentication)}, but falls back to a
+     * caller-supplied identity (e.g. the email a self-registering operator just
+     * chose) when there is no authenticated principal to resolve one from. This is
+     * what keeps audit entries written during self-registration (where the request
+     * is anonymous) from recording a blank performer.
+     */
+    public static String resolveAuditIdentity(Authentication authentication, String fallbackIdentity) {
+        String resolved = resolveAuditIdentity(authentication);
+        if (resolved != null && !resolved.isBlank()) {
+            return resolved;
+        }
+        return fallbackIdentity != null ? fallbackIdentity : "";
+    }
 }

@@ -9,4 +9,8 @@ import java.util.UUID;
 public interface OperatorRepository extends JpaRepository<Operator, UUID> {
 
     List<Operator> findByStageId(UUID stageId);
+
+    boolean existsByPlateNumberIgnoreCase(String plateNumber);
+
+    boolean existsByPlateNumberIgnoreCaseAndIdNot(String plateNumber, UUID id);
 }
