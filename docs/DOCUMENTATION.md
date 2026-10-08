@@ -532,12 +532,68 @@ Local/dev deployment (what this repository is set up for):
 4. The app is on `http://localhost:8080`; RabbitMQ's management UI on `:15672`;
    Mailpit's UI on `:8025`.
 
-A production deployment would additionally need: a real SMTP provider (replacing
-Mailpit via the `MAIL_*` variables), a real Google OAuth2 client registered for
-the production domain, TLS termination in front of the app (the app itself serves
-plain HTTP), and the database containers replaced with managed, backed-up
-equivalents rather than local Docker volumes. None of that infrastructure work was
-in scope for this course project - see [Known limitations](#19-known-limitations).
+A production deployment would additionally need: TLS termination in front of the
+app (the app itself serves plain HTTP), and the database containers replaced with
+managed, backed-up equivalents rather than local Docker volumes. That
+infrastructure work is out of scope for now (see
+[Known limitations](#19-known-limitations)) - this section instead covers the two
+pieces that *are* in scope: real email delivery and real Google OAuth2, both
+driven purely by environment variables, with no code or profile switch between
+"local" and "production."
+
+### Production email (Gmail SMTP)
+
+Every OTP email (registration, login, password reset) goes through the same
+`MAIL_*` environment variables `application.properties` already reads - setting
+real values makes delivery real, with no code change. Gmail SMTP is the
+documented path here because it needs no paid account, but any standard SMTP
+provider (see the alternative below) works identically, since Spring just needs
+host/port/username/password/auth/starttls.
+
+**1. Create a Gmail App Password** (this project intentionally does not support
+"less secure app access," which Google itself discourages - an App Password is
+the correct modern approach and requires 2-Step Verification to be on):
+
+1. Turn on 2-Step Verification on the Gmail account, if not already on:
+   <https://myaccount.google.com/security>.
+2. Go to <https://myaccount.google.com/apppasswords> (or Security -> 2-Step
+   Verification -> App passwords).
+3. Create a new App Password (name it something like "TransitDues SMTP").
+   Google shows a 16-character password once - copy it immediately.
+
+**2. Set these environment variables** in the production environment (never in a
+committed file - see "Secrets" below):
+
+```
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=your-sending-address@gmail.com
+MAIL_PASSWORD=the-16-character-app-password
+MAIL_SMTP_AUTH=true
+MAIL_SMTP_STARTTLS=true
+MAIL_FROM=your-sending-address@gmail.com
+```
+
+Port `587` with STARTTLS is Gmail's standard submission port - no further
+properties are needed; `application.properties` already maps all six of these.
+
+**Alternative: a transactional email provider** (e.g. SendGrid, Mailgun,
+Amazon SES, Postmark). Any of these is arguably cleaner for production than a
+personal Gmail account - no per-account sending limits tied to a human user,
+built-in delivery/bounce monitoring, and a provider-managed API key instead of an
+App Password. They work exactly the same way here: each publishes its own SMTP
+host/port/credentials, which drop into the same six `MAIL_*` variables with no
+code change (e.g. SendGrid: `MAIL_HOST=smtp.sendgrid.net`,
+`MAIL_PORT=587`, `MAIL_USERNAME=apikey`, `MAIL_PASSWORD=<your API key>`). This
+project keeps the generic SMTP path working either way rather than coding
+against one provider's dedicated API.
+
+**Secrets**: `.env` is git-ignored (`.gitignore` already lists it) and
+`.env.example` holds only placeholders - never put a real App Password, API key,
+or OAuth client secret in a committed file, a README screenshot, or a log
+statement. In most real deployment platforms (Render, Railway, Fly.io, a VM with
+systemd, etc.) these variables are set in the platform's own environment/secrets
+configuration, not in a file that ships with the code at all.
 
 ## 19. Known limitations
 
