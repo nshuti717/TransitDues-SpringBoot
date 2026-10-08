@@ -51,4 +51,14 @@ public interface DuePaymentService {
      * CASH_PENDING, awaiting finance confirmation.
      */
     DuePayment requestCashPayment(UUID duePaymentId, Operator payingOperator);
+
+    /**
+     * Finance confirms a cash payment was received: moves a CASH_PENDING due
+     * to PAID. Finance-only by route, not by an ownership check - any
+     * finance officer may confirm any operator's cash request.
+     */
+    DuePayment confirmCashPayment(UUID duePaymentId);
+
+    /** Finance rejects a cash request: returns a CASH_PENDING due to PENDING. */
+    DuePayment rejectCashPayment(UUID duePaymentId);
 }

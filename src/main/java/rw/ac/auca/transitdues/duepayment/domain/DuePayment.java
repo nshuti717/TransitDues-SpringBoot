@@ -97,6 +97,10 @@ public class DuePayment extends BaseEntity {
     @Column(name = "submitted_at")
     private LocalDate submittedAt;
 
+    /** Which finance officer confirmed a cash payment. Null otherwise. */
+    @Column(name = "confirmed_by")
+    private String confirmedBy;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "operator_id", nullable = false)
     private Operator operator;

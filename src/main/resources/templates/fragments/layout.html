@@ -163,6 +163,14 @@
 <span class="text-label-md font-label-md">Due Payments</span>
 </a>
 <a class="rounded-lg font-medium px-space-md py-space-sm flex items-center gap-space-sm active:scale-[0.99] transition-colors duration-150"
+   sec:authorize="hasAnyRole('ADMIN', 'FINANCE_OFFICER')"
+   th:classappend="${activeNav == 'finance'} ? 'bg-primary text-on-primary' : 'text-inverse-on-surface/70 hover:text-inverse-on-surface hover:bg-surface-variant/10'"
+   th:href="@{/web/finance}"
+   th:attr="aria-current=${activeNav == 'finance'} ? 'page' : null">
+<span class="material-symbols-outlined text-xl" data-icon="account_balance">account_balance</span>
+<span class="text-label-md font-label-md">Collections</span>
+</a>
+<a class="rounded-lg font-medium px-space-md py-space-sm flex items-center gap-space-sm active:scale-[0.99] transition-colors duration-150"
    sec:authorize="hasRole('ADMIN')"
    th:classappend="${activeNav == 'audit-log'} ? 'bg-primary text-on-primary' : 'text-inverse-on-surface/70 hover:text-inverse-on-surface hover:bg-surface-variant/10'"
    th:href="@{/web/audit-log}"

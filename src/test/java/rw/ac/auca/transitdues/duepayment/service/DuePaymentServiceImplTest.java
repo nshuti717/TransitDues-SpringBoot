@@ -237,6 +237,43 @@ class DuePaymentServiceImplTest {
                 () -> duePaymentService.requestCashPayment(due.getId(), intruder));
     }
 
+    @Test
+    void confirmCashPaymentMovesCashPendingDueToPaid() {
+        Operator operator = operator(UUID.randomUUID(), "Jean Claude Ishimwe");
+        DuePayment due = payableDue(operator, DuePaymentStatus.CASH_PENDING);
+        when(duePaymentRepository.findById(due.getId())).thenReturn(Optional.of(due));
+        when(duePaymentRepository.save(any(DuePayment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        DuePayment result = duePaymentService.confirmCashPayment(due.getId());
+
+        assertEquals(DuePaymentStatus.PAID, result.getStatus());
+        assertNotNull(result.getReference());
+        assertNotNull(result.getPaidAt());
+    }
+
+    @Test
+    void confirmCashPaymentRejectsADueThatIsNotAwaitingCashConfirmation() {
+        Operator operator = operator(UUID.randomUUID(), "Jean Claude Ishimwe");
+        DuePayment due = payableDue(operator, DuePaymentStatus.PENDING);
+        when(duePaymentRepository.findById(due.getId())).thenReturn(Optional.of(due));
+
+        assertThrows(InvalidPaymentStateException.class, () -> duePaymentService.confirmCashPayment(due.getId()));
+        verify(duePaymentRepository, never()).save(any(DuePayment.class));
+    }
+
+    @Test
+    void rejectCashPaymentReturnsCashPendingDueToPending() {
+        Operator operator = operator(UUID.randomUUID(), "Jean Claude Ishimwe");
+        DuePayment due = payableDue(operator, DuePaymentStatus.CASH_PENDING);
+        when(duePaymentRepository.findById(due.getId())).thenReturn(Optional.of(due));
+        when(duePaymentRepository.save(any(DuePayment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        DuePayment result = duePaymentService.rejectCashPayment(due.getId());
+
+        assertEquals(DuePaymentStatus.PENDING, result.getStatus());
+        assertNull(result.getPaymentMethod());
+    }
+
     private DuePayment payableDue(Operator operator, DuePaymentStatus status) {
         DuePayment due = new DuePayment();
         due.setId(UUID.randomUUID());

@@ -34,6 +34,7 @@ public class SecurityConfig {
                         .requestMatchers("/web/stages/**").hasAnyRole("ADMIN", "FINANCE_OFFICER")
                         .requestMatchers("/web/operators/**").hasAnyRole("ADMIN", "FINANCE_OFFICER")
                         .requestMatchers("/web/duepayments/**").hasAnyRole("ADMIN", "FINANCE_OFFICER")
+                        .requestMatchers("/web/finance/**").hasAnyRole("ADMIN", "FINANCE_OFFICER")
                         .requestMatchers("/web/audit-log/**").hasRole("ADMIN")
                         .requestMatchers("/portal/**").hasRole("OPERATOR")
                         .anyRequest().authenticated())

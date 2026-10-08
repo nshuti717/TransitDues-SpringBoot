@@ -9,12 +9,14 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import rw.ac.auca.transitdues.duepayment.domain.DuePayment;
 import rw.ac.auca.transitdues.duepayment.service.BulkIssueForm;
 import rw.ac.auca.transitdues.duepayment.service.BulkIssueResult;
 import rw.ac.auca.transitdues.duepayment.service.BulkIssueScope;
 import rw.ac.auca.transitdues.duepayment.service.DuePaymentService;
 import rw.ac.auca.transitdues.exception.DuplicateDuePaymentException;
+import rw.ac.auca.transitdues.exception.InvalidPaymentStateException;
 import rw.ac.auca.transitdues.exception.OperatorNotFoundException;
 import rw.ac.auca.transitdues.exception.StageNotFoundException;
 import rw.ac.auca.transitdues.operator.domain.Operator;
@@ -155,5 +157,36 @@ public class DuePaymentWebController {
     public String deleteDuePayment(@PathVariable UUID id) {
         duePaymentService.deleteDuePayment(id);
         return "redirect:/web/duepayments";
+    }
+
+    @PostMapping("/{id}/confirm-cash")
+    @PreAuthorize("hasRole('FINANCE_OFFICER')")
+    public String confirmCashPayment(@PathVariable UUID id, @RequestParam(required = false) String redirectTo,
+                                      RedirectAttributes redirectAttributes) {
+        try {
+            duePaymentService.confirmCashPayment(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Cash payment confirmed.");
+        } catch (InvalidPaymentStateException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:" + resolveRedirectTarget(redirectTo);
+    }
+
+    @PostMapping("/{id}/reject-cash")
+    @PreAuthorize("hasRole('FINANCE_OFFICER')")
+    public String rejectCashPayment(@PathVariable UUID id, @RequestParam(required = false) String redirectTo,
+                                     RedirectAttributes redirectAttributes) {
+        try {
+            duePaymentService.rejectCashPayment(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Cash request rejected; due returned to pending.");
+        } catch (InvalidPaymentStateException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:" + resolveRedirectTarget(redirectTo);
+    }
+
+    /** Whitelist of known redirect targets, to avoid an open redirect via the redirectTo param. */
+    private String resolveRedirectTarget(String redirectTo) {
+        return "finance".equals(redirectTo) ? "/web/finance" : "/web/duepayments";
     }
 }

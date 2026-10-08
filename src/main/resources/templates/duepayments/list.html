@@ -85,6 +85,18 @@
                         <td class="px-space-md text-body-sm font-body-sm text-on-surface-variant whitespace-nowrap" th:text="${duepayment.reference} ?: '-'">-</td>
                         <td class="px-space-md text-center whitespace-nowrap">
                             <div class="inline-flex items-center gap-1" sec:authorize="hasRole('FINANCE_OFFICER')">
+                                <form th:if="${duepayment.status.name() == 'CASH_PENDING'}"
+                                      th:action="@{/web/duepayments/{id}/confirm-cash(id=${duepayment.id})}" method="post" class="inline">
+                                    <button class="h-10 w-10 flex items-center justify-center rounded text-outline hover:text-tertiary hover:bg-tertiary-container/20 transition-colors" title="Confirm Cash Payment" type="submit">
+                                        <span class="material-symbols-outlined text-[18px]" data-icon="check_circle">check_circle</span>
+                                    </button>
+                                </form>
+                                <form th:if="${duepayment.status.name() == 'CASH_PENDING'}"
+                                      th:action="@{/web/duepayments/{id}/reject-cash(id=${duepayment.id})}" method="post" class="inline">
+                                    <button class="h-10 w-10 flex items-center justify-center rounded text-outline hover:text-error hover:bg-error-container/40 transition-colors" title="Reject Cash Request" type="submit">
+                                        <span class="material-symbols-outlined text-[18px]" data-icon="cancel">cancel</span>
+                                    </button>
+                                </form>
                                 <a class="h-10 w-10 flex items-center justify-center rounded text-outline hover:text-on-surface hover:bg-surface-container transition-colors"
                                    th:href="@{/web/duepayments/{id}/edit(id=${duepayment.id})}" title="Edit Due">
                                     <span class="material-symbols-outlined text-[18px]" data-icon="edit">edit</span>

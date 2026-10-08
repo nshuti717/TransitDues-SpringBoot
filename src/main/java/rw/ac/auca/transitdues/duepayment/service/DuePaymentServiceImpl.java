@@ -255,6 +255,43 @@ public class DuePaymentServiceImpl implements DuePaymentService {
         return saved;
     }
 
+    @Override
+    @CacheEvict(cacheNames = "dashboardStats", allEntries = true)
+    public DuePayment confirmCashPayment(UUID duePaymentId) {
+        DuePayment duePayment = findDuePaymentById(duePaymentId);
+        if (duePayment.getStatus() != DuePaymentStatus.CASH_PENDING) {
+            throw new InvalidPaymentStateException("This due has no cash payment awaiting confirmation.");
+        }
+
+        duePayment.setStatus(DuePaymentStatus.PAID);
+        duePayment.setPaidAt(LocalDate.now());
+        duePayment.setReference("CASH-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+        duePayment.setConfirmedBy(currentIssuedBy());
+
+        DuePayment saved = save(duePayment);
+        auditLogService.record("DuePayment", saved.getId().toString(), "CASH_CONFIRM", describe(saved));
+        duePaymentEventPublisher.publish(toEvent(saved, DuePaymentEvent.PAYMENT_CONFIRMED));
+        return saved;
+    }
+
+    @Override
+    @CacheEvict(cacheNames = "dashboardStats", allEntries = true)
+    public DuePayment rejectCashPayment(UUID duePaymentId) {
+        DuePayment duePayment = findDuePaymentById(duePaymentId);
+        if (duePayment.getStatus() != DuePaymentStatus.CASH_PENDING) {
+            throw new InvalidPaymentStateException("This due has no cash payment awaiting confirmation.");
+        }
+
+        duePayment.setStatus(DuePaymentStatus.PENDING);
+        duePayment.setPaymentMethod(null);
+        duePayment.setSubmittedAt(null);
+
+        DuePayment saved = save(duePayment);
+        auditLogService.record("DuePayment", saved.getId().toString(), "CASH_REJECT", describe(saved));
+        duePaymentEventPublisher.publish(toEvent(saved, DuePaymentEvent.UPDATED));
+        return saved;
+    }
+
     private DuePayment requirePayable(UUID duePaymentId, Operator payingOperator) {
         DuePayment duePayment = findDuePaymentById(duePaymentId);
         requireOwnedBy(duePayment, payingOperator);

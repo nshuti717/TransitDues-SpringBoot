@@ -111,9 +111,9 @@ on every issuing/mutating endpoint). From there, two paths lead to PAID:
   below): PENDING/OVERDUE/FAILED &rarr; **SUBMITTED** (online payment started)
   &rarr; **PAID** or **FAILED** (operator confirms, outcome is simulated), or
   PENDING/OVERDUE/FAILED &rarr; **CASH_PENDING** (operator asks to pay cash) &rarr;
-  PAID once a finance officer confirms it (that confirmation action is P5, not yet
-  built - a CASH_PENDING due is a dead end in the UI until then, beyond the
-  operator seeing "Awaiting finance confirmation").
+  **PAID** once a finance officer confirms it, or back to **PENDING** if they
+  reject it (Session 6/P5 - see "Finance collections and cash confirmation"
+  below).
 
 **OVERDUE** happens automatically once `dueDate` has passed, while still PENDING -
 unrelated to the payment-attempt states above, and a due can go straight from
@@ -308,6 +308,35 @@ their own dues from `/portal`, not just view a static profile.
   (Thymeleaf selects an unmatched value to nothing, browser defaults to the first
   option). Extended it, and the due-payments list's status filter/badge colors, to
   cover all six statuses.
+
+### Session 6: Finance collections and cash confirmation (P5)
+Closed the loop CASH_PENDING left open in Session 5: finance can now see and act on
+it, not just operators seeing "Awaiting finance confirmation" forever.
+
+- `DuePaymentService` gained `confirmCashPayment`/`rejectCashPayment`
+  (FINANCE_OFFICER-only, same `@PreAuthorize` placement as issue/bulk-issue/update
+  on `DuePaymentWebController` - new endpoints `/web/duepayments/{id}/confirm-cash`
+  and `/reject-cash`). Confirming sets PAID with a `CASH-XXXXXXXX` reference and
+  records `confirmedBy` (new `DuePayment` field); rejecting returns the due to
+  PENDING. Both reject anything not currently CASH_PENDING via the same
+  `InvalidPaymentStateException` used for the operator-side payment actions.
+- New `/web/finance` "Collections" page (new `finance` package:
+  `CollectionsService` + `CollectionsSummary`, new `FinanceWebController`,
+  `ADMIN`+`FINANCE_OFFICER` read access like the other finance-adjacent pages):
+  total expected/collected/outstanding, a status breakdown, and a filterable due
+  list (operator name or plate, stage, status, due-date range - all done
+  in-memory over `findAllDuePayments()`, consistent with how the existing
+  due-payments list already filters by status; dataset sizes here don't call for
+  Spring Data Specifications). CASH_PENDING rows get inline Confirm/Reject
+  buttons. The same two buttons were also added to the plain `/web/duepayments`
+  list, since cash requests can land there too - both post to the same
+  controller actions, with a hidden `redirectTo` field (whitelisted to exactly
+  `"finance"` or the default) so confirming from either page returns to that page,
+  without opening an open-redirect.
+- `CollectionsSummary` is computed fresh on every request, deliberately not
+  behind the `dashboardStats` Redis cache: finance watching this page while
+  working a stack of cash requests expects each confirm/reject to be reflected
+  immediately, not up to 60 seconds later.
 
 ## Running it / testing it
 

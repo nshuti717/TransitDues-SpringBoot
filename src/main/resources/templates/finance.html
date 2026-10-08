@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<div th:replace="~{fragments/layout :: layout(~{::#content}, 'finance', 'Collections', 'Expected, collected and outstanding dues, with cash confirmations.')}">
+    <div id="content">
+
+        <div id="success-banner" class="mb-space-lg rounded-lg bg-tertiary-container/10 border border-tertiary/30 p-space-md flex items-start gap-space-sm" th:if="${successMessage}">
+            <span class="material-symbols-outlined text-tertiary text-[20px] mt-0.5" data-icon="check_circle">check_circle</span>
+            <div class="flex-1 text-body-sm font-body-sm text-on-surface-variant leading-relaxed" th:text="${successMessage}">Success.</div>
+            <button type="button" aria-label="Dismiss" class="text-tertiary hover:text-on-surface transition-colors" onclick="document.getElementById('success-banner').remove()">
+                <span class="material-symbols-outlined text-[18px]">close</span>
+            </button>
+        </div>
+        <div id="error-banner" class="mb-space-lg rounded-lg bg-error-container/40 border border-error/30 p-space-md flex items-start gap-space-sm" th:if="${errorMessage}">
+            <span class="material-symbols-outlined text-error text-[20px] mt-0.5" data-icon="error">error</span>
+            <div class="flex-1 text-body-sm font-body-sm text-on-surface-variant leading-relaxed" th:text="${errorMessage}">Something went wrong.</div>
+            <button type="button" aria-label="Dismiss" class="text-error hover:text-on-surface transition-colors" onclick="document.getElementById('error-banner').remove()">
+                <span class="material-symbols-outlined text-[18px]">close</span>
+            </button>
+        </div>
+
+        <!-- Summary Cards -->
+        <section aria-label="Collections Summary" class="grid grid-cols-1 sm:grid-cols-3 gap-gutter">
+            <div class="bg-surface-container-lowest rounded-lg border border-outline-variant/30 p-space-md shadow-sm">
+                <span class="text-label-xs font-label-xs text-on-surface-variant uppercase tracking-wider font-semibold">Total Expected</span>
+                <div class="text-headline-lg font-headline-lg text-on-surface font-bold mt-2"
+                     th:text="'RWF ' + ${#numbers.formatDecimal(summary.totalExpected, 0, 'COMMA', 0, 'POINT')}">RWF 0</div>
+            </div>
+            <div class="bg-surface-container-lowest rounded-lg border border-outline-variant/30 p-space-md shadow-sm">
+                <span class="text-label-xs font-label-xs text-on-surface-variant uppercase tracking-wider font-semibold">Total Collected</span>
+                <div class="text-headline-lg font-headline-lg text-[#2A9D8F] font-bold mt-2"
+                     th:text="'RWF ' + ${#numbers.formatDecimal(summary.totalCollected, 0, 'COMMA', 0, 'POINT')}">RWF 0</div>
+            </div>
+            <div class="bg-surface-container-lowest rounded-lg border border-outline-variant/30 p-space-md shadow-sm">
+                <span class="text-label-xs font-label-xs text-on-surface-variant uppercase tracking-wider font-semibold">Outstanding Balance</span>
+                <div class="text-headline-lg font-headline-lg text-error font-bold mt-2"
+                     th:text="'RWF ' + ${#numbers.formatDecimal(summary.totalOutstanding, 0, 'COMMA', 0, 'POINT')}">RWF 0</div>
+            </div>
+        </section>
+
+        <!-- Status Breakdown -->
+        <section class="bg-surface-container-lowest border border-outline-variant/30 rounded-lg shadow-sm overflow-hidden">
+            <div class="px-space-lg py-space-md border-b border-outline-variant/20">
+                <h2 class="text-headline-sm font-headline-sm text-on-surface font-semibold">By Status</h2>
+            </div>
+            <div class="flex flex-wrap gap-space-sm p-space-md">
+                <span th:each="entry : ${summary.countsByStatus}"
+                      class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-label-sm font-label-sm font-medium bg-surface-container text-on-surface">
+                    <span th:text="${entry.key}">PAID</span>
+                    <span class="font-bold" th:text="${entry.value}">0</span>
+                </span>
+                <span th:if="${#maps.isEmpty(summary.countsByStatus)}" class="text-body-sm font-body-sm text-on-surface-variant">No due payments recorded yet.</span>
+            </div>
+        </section>
+
+        <!-- Filters -->
+        <section class="bg-surface-container-lowest border border-outline-variant/30 rounded-lg shadow-sm p-space-md">
+            <form class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-space-md items-end" method="get" th:action="@{/web/finance}">
+                <div class="space-y-1.5">
+                    <label class="block text-label-sm font-label-sm text-on-surface-variant font-semibold" for="operatorQuery">Operator / Plate</label>
+                    <input class="w-full h-10 px-3 rounded-lg border border-outline-variant/50 bg-surface-container-lowest text-on-surface text-body-sm font-body-sm focus:outline-none focus:border-primary-container focus:ring-2 focus:ring-primary-container/20"
+                           id="operatorQuery" name="operatorQuery" th:value="${operatorQuery}" placeholder="Name or plate" type="text"/>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="block text-label-sm font-label-sm text-on-surface-variant font-semibold" for="stageId">Stage</label>
+                    <select class="w-full h-10 px-3 rounded-lg border border-outline-variant/50 bg-surface-container-lowest text-on-surface text-body-sm font-body-sm appearance-none cursor-pointer"
+                            id="stageId" name="stageId">
+                        <option value="">All stages</option>
+                        <option th:each="s : ${stages}" th:selected="${stageFilter != null and stageFilter == s.id}" th:text="${s.name}" th:value="${s.id}">Stage</option>
+                    </select>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="block text-label-sm font-label-sm text-on-surface-variant font-semibold" for="status">Status</label>
+                    <select class="w-full h-10 px-3 rounded-lg border border-outline-variant/50 bg-surface-container-lowest text-on-surface text-body-sm font-body-sm appearance-none cursor-pointer"
+                            id="status" name="status">
+                        <option value="" th:selected="${statusFilter == null or statusFilter == ''}">All statuses</option>
+                        <option value="PENDING" th:selected="${statusFilter == 'PENDING'}">Pending</option>
+                        <option value="SUBMITTED" th:selected="${statusFilter == 'SUBMITTED'}">Submitted</option>
+                        <option value="CASH_PENDING" th:selected="${statusFilter == 'CASH_PENDING'}">Cash pending</option>
+                        <option value="PAID" th:selected="${statusFilter == 'PAID'}">Paid</option>
+                        <option value="FAILED" th:selected="${statusFilter == 'FAILED'}">Failed</option>
+                        <option value="OVERDUE" th:selected="${statusFilter == 'OVERDUE'}">Overdue</option>
+                    </select>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="block text-label-sm font-label-sm text-on-surface-variant font-semibold" for="fromDate">From</label>
+                    <input class="w-full h-10 px-3 rounded-lg border border-outline-variant/50 bg-surface-container-lowest text-on-surface text-body-sm font-body-sm"
+                           id="fromDate" name="fromDate" th:value="${fromDate}" type="date"/>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="block text-label-sm font-label-sm text-on-surface-variant font-semibold" for="toDate">To</label>
+                    <input class="w-full h-10 px-3 rounded-lg border border-outline-variant/50 bg-surface-container-lowest text-on-surface text-body-sm font-body-sm"
+                           id="toDate" name="toDate" th:value="${toDate}" type="date"/>
+                </div>
+                <div class="sm:col-span-2 lg:col-span-5 flex gap-space-sm">
+                    <button class="h-10 px-4 bg-primary-container hover:bg-primary text-on-primary rounded-lg text-label-sm font-label-sm font-medium" type="submit">
+                        Apply Filters
+                    </button>
+                    <a class="h-10 px-4 flex items-center rounded-lg border border-outline-variant/40 text-on-surface text-label-sm font-label-sm font-medium hover:bg-surface-container-low" href="/web/finance">
+                        Clear
+                    </a>
+                </div>
+            </form>
+        </section>
+
+        <!-- Filtered Due Payments -->
+        <section class="bg-surface-container-lowest border border-outline-variant/30 rounded-lg shadow-sm overflow-hidden flex flex-col">
+            <div class="p-space-md border-b border-outline-variant/30 flex items-center gap-space-sm">
+                <span class="text-label-md font-label-md font-semibold text-on-surface">Matching Dues</span>
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-surface-container text-primary"
+                      th:text="${#lists.size(duepayments)} + ' ' + (${#lists.size(duepayments)} == 1 ? 'due' : 'dues')">0 dues</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[960px] border-collapse text-left">
+                    <thead>
+                    <tr class="h-10 bg-surface-container-low border-b border-outline-variant/30">
+                        <th class="px-space-md text-label-xs font-label-xs uppercase tracking-wider text-outline font-semibold" scope="col">Operator</th>
+                        <th class="px-space-md text-label-xs font-label-xs uppercase tracking-wider text-outline font-semibold" scope="col">Stage</th>
+                        <th class="px-space-md text-label-xs font-label-xs uppercase tracking-wider text-outline font-semibold text-right" scope="col">Amount</th>
+                        <th class="px-space-md text-label-xs font-label-xs uppercase tracking-wider text-outline font-semibold" scope="col">Due Date</th>
+                        <th class="px-space-md text-label-xs font-label-xs uppercase tracking-wider text-outline font-semibold" scope="col">Status</th>
+                        <th class="px-space-md text-label-xs font-label-xs uppercase tracking-wider text-outline font-semibold text-center" scope="col">Action</th>
+                    </tr>
+                    </thead>
+                    <tbody class="divide-y divide-outline-variant/20">
+                    <tr th:each="due : ${duepayments}" class="h-[52px] hover:bg-surface-container-low/50 transition-colors">
+                        <td class="px-space-md text-body-sm font-body-sm font-medium text-on-surface whitespace-nowrap" th:text="${due.operator.fullName}">Operator Name</td>
+                        <td class="px-space-md text-body-sm font-body-sm text-on-surface-variant whitespace-nowrap" th:text="${due.operator.stage.name}">Stage</td>
+                        <td class="px-space-md text-body-sm font-body-sm font-semibold text-on-surface text-right whitespace-nowrap"
+                            th:text="'RWF ' + ${#numbers.formatDecimal(due.amount, 0, 'COMMA', 0, 'POINT')}">RWF 1,000</td>
+                        <td class="px-space-md text-body-sm font-body-sm text-on-surface-variant whitespace-nowrap" th:text="${#temporals.format(due.dueDate, 'dd MMM yyyy')}">01 Jan 2026</td>
+                        <td class="px-space-md whitespace-nowrap">
+                            <span class="inline-flex items-center rounded-full px-2.5 py-1 text-label-sm font-label-sm font-medium"
+                                  th:classappend="${due.effectiveStatus.name() == 'PAID'} ? 'bg-[#2A9D8F]/15 text-[#2A9D8F]' :
+                                                  (${due.effectiveStatus.name() == 'OVERDUE' or due.effectiveStatus.name() == 'FAILED'} ? 'bg-error-container text-error' :
+                                                  (${due.effectiveStatus.name() == 'CASH_PENDING'} ? 'bg-secondary-container text-secondary' :
+                                                  (${due.effectiveStatus.name() == 'SUBMITTED'} ? 'bg-primary-container/20 text-primary' : 'bg-[#E9A23B]/20 text-[#B8771B]')))"
+                                  th:text="${due.effectiveStatus.name()}">PENDING</span>
+                        </td>
+                        <td class="px-space-md text-center whitespace-nowrap">
+                            <div th:if="${due.status.name() == 'CASH_PENDING'}" class="flex items-center justify-center gap-1.5" sec:authorize="hasRole('FINANCE_OFFICER')">
+                                <form th:action="@{/web/duepayments/{id}/confirm-cash(id=${due.id})}" method="post">
+                                    <input name="redirectTo" type="hidden" value="finance"/>
+                                    <button class="h-9 px-3 bg-primary-container hover:bg-primary text-on-primary rounded-lg text-label-sm font-label-sm font-medium" type="submit">
+                                        Confirm
+                                    </button>
+                                </form>
+                                <form th:action="@{/web/duepayments/{id}/reject-cash(id=${due.id})}" method="post">
+                                    <input name="redirectTo" type="hidden" value="finance"/>
+                                    <button class="h-9 px-3 bg-surface-container-lowest border border-outline-variant/40 hover:bg-surface-container-low text-on-surface rounded-lg text-label-sm font-label-sm font-medium" type="submit">
+                                        Reject
+                                    </button>
+                                </form>
+                            </div>
+                            <span th:unless="${due.status.name() == 'CASH_PENDING'}" class="text-label-sm font-label-sm text-on-surface-variant">&#8212;</span>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(duepayments)}">
+                        <td class="px-space-md py-6 text-center text-on-surface-variant" colspan="6">No dues match these filters.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</div>
+</body>
+</html>
