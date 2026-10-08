@@ -89,6 +89,7 @@ responsive instead).
 | F1 | An operator can self-register with a stage, plate number and phone | `/register` |
 | F1a | A self-registered operator must verify their email with an OTP before they can sign in or reach the portal | `/verify-account`, `CustomUserDetailsService` |
 | F2 | An operator, finance officer or admin can sign in by email/phone+password, or by Google | `/login` |
+| F2a | A correct password requires a second OTP, emailed, before a session is created | `/verify-login`, `OtpGatedAuthenticationProvider` |
 | F3 | A signed-in operator sees only their own profile, dues and payment history | `/portal` |
 | F4 | An operator can pay a due online (simulated) or request to pay it in cash | `/portal` |
 | F5 | A finance officer can issue a due to one or many operators | `/web/duepayments` |
@@ -104,9 +105,12 @@ responsive instead).
 These are written to be checkable, not just aspirational:
 
 - **Security**: passwords are BCrypt-hashed, never logged or returned by any
-  endpoint; OTP codes are BCrypt-hashed and single-use; every `/web/**` and
-  `/portal/**` route is role-gated (verified by the security test suite, not just
-  by UI hiding); CSRF protection is on for every state-changing form.
+  endpoint; OTP codes are BCrypt-hashed, single-use, and scoped per purpose (a
+  code for one of `PASSWORD_RESET`/`REGISTRATION_VERIFY`/`LOGIN_VERIFY` cannot
+  verify another); a correct password alone never creates a session - the
+  `LOGIN_VERIFY` OTP must follow it first; every `/web/**` and `/portal/**` route
+  is role-gated (verified by the security test suite, not just by UI hiding);
+  CSRF protection is on for every state-changing form.
 - **Availability of the dashboard under load**: dashboard aggregates are
   Redis-cached for 60 seconds, so repeated views do not re-scan the due-payment
   table.
@@ -120,7 +124,7 @@ These are written to be checkable, not just aspirational:
   operators are expected to use this on a phone.
 - **Auditability**: every create/update/delete of a Stage, Operator, UserAccount or
   DuePayment writes an entry to the MongoDB audit log with who, what, when.
-- **Testability**: the full test suite (88 tests as of this writing) runs against
+- **Testability**: the full test suite (104 tests as of this writing) runs against
   the real local Postgres/Mongo/Redis/RabbitMQ containers, not mocks of them - see
   [Testing plan](#17-testing-plan).
 
@@ -142,6 +146,19 @@ typo'd or someone-else's address can't register as mine.**
 - Given I click Resend before 60 seconds have passed since the last code, then
   the server refuses it with how many seconds remain - clicking the button
   again, or replaying the request directly, cannot bypass this.
+
+**As any user, I want a second factor after my password, so a leaked or guessed
+password alone can't sign in as me.**
+- Given I enter the correct password, then I am **not** yet signed in - no
+  `/portal`, `/web/**`, or `/api/**` request will succeed yet, even by direct
+  URL, because no session exists until the OTP step completes.
+- Given I enter the correct `LOGIN_VERIFY` code, then I am signed in and land on
+  the page my role normally lands on (`/portal` for an operator, `/` for finance/
+  admin) - the exact same redirect logic every other login path uses.
+- Given I enter the wrong password, then I am refused immediately with no OTP
+  ever sent - the second factor only exists after the first one already passed.
+- Given I signed in with Google, then I am **not** asked for a login OTP -
+  Google's own sign-in already verified the address.
 
 **As an operator, I want to see my own dues, so I know what I owe.**
 - Given I am signed in as an operator, when I open `/portal`, then I see only
@@ -196,8 +213,8 @@ flowchart TB
         direction TB
         Web["Thymeleaf web controllers<br/>(/web/**, /portal/**, /)"]
         Rest["REST controllers<br/>(/api/**)"]
-        Sec["Spring Security<br/>form login + Google OAuth2 + RBAC"]
-        Svc["Service layer<br/>Stage / Operator / UserAccount /<br/>DuePayment / Collections / Otp / PasswordReset"]
+        Sec["Spring Security<br/>form login (+LOGIN_VERIFY OTP gate) + Google OAuth2 + RBAC"]
+        Svc["Service layer<br/>Stage / Operator / UserAccount /<br/>DuePayment / Collections / Otp /<br/>PasswordReset / AccountVerification / LoginVerification"]
         Pub["Event publishers<br/>DuePaymentEventPublisher / EmailEventPublisher"]
         Con["Event consumers<br/>PaymentAuditConsumer / NotificationConsumer /<br/>EmailSendConsumer"]
     end
@@ -321,7 +338,7 @@ erDiagram
     OTP_VERIFICATION {
         uuid id PK
         string email
-        string purpose "PASSWORD_RESET / REGISTRATION_VERIFY"
+        string purpose "PASSWORD_RESET / REGISTRATION_VERIFY / LOGIN_VERIFY"
         string codeHash
         datetime expiresAt
         int attempts
@@ -378,46 +395,106 @@ acting only on their own due) are enforced in the service layer and throw
 
 ## 13. Authentication and OAuth2
 
-Two independent ways to authenticate, both producing the same kind of
-`Authentication` principal:
+Two independent ways to establish identity, feeding into up to three outcomes
+before a session actually exists:
 
 1. **Form login** (`/login`): email-or-phone + password, checked against
    `UserAccount.passwordHash` (BCrypt) via `CustomUserDetailsService`, which also
    reports the account `disabled` if `enabled=false` **or** its status is
    `PENDING_VERIFICATION` - reusing the exact mechanism Spring Security already
-   uses for admin-disabled accounts, rather than inventing a second one.
-2. **Google OAuth2/OIDC** (`/oauth2/authorization/google`): `OAuth2UserRoleMapper`
-   decides the resulting role(s) in order - an existing account's own DB role,
-   then the `OAUTH_ADMIN_EMAILS`/`OAUTH_FINANCE_EMAILS` lists, then an
-   auto-provisioned restricted OPERATOR account. See `spec.md` Session 7 for the
-   full reasoning; the short version is that Google can never grant ADMIN or
-   FINANCE_OFFICER on its own, only an existing database account or the two
-   configured email lists can. This path is not subject to the email-verification
-   gate below - Google's own sign-in already verified the address.
+   uses for admin-disabled accounts. A **correct** password does not finish
+   authentication - see "Login OTP" below.
+2. **Google OAuth2/OIDC** (`/oauth2/authorization/google`, hidden on `/login`
+   entirely when `GOOGLE_CLIENT_ID` isn't configured): `OAuth2UserRoleMapper`
+   decides the outcome in order - an existing **ACTIVE** account's own DB role;
+   a `PENDING_VERIFICATION` match is refused outright (`OAuth2AuthenticationException`
+   - Google's identity check does not substitute for the registration OTP, since
+   the rest of the account - password, plate/stage - was never confirmed); then
+   the `OAUTH_ADMIN_EMAILS`/`OAUTH_FINANCE_EMAILS` lists; then an auto-provisioned
+   restricted `ACTIVE` `OPERATOR` account (no linked `Operator` profile - the
+   person completes that separately). Google can never grant ADMIN or
+   FINANCE_OFFICER this way - only an existing database account or the two email
+   lists can. A successful Google login does **not** also require a login OTP -
+   Google's own sign-in already verified the address.
 
 `RoleBasedAuthenticationSuccessHandler` routes a freshly authenticated session to
-`/` (ADMIN/FINANCE_OFFICER) or `/portal` (OPERATOR-only), regardless of which of
-the two methods was used.
+`/` (ADMIN/FINANCE_OFFICER) or `/portal` (OPERATOR-only), regardless of which path
+produced it - form login after its OTP, Google login, or registration
+verification.
 
 ### Email verification for self-registration
 
-A third, narrower path exists only for the moment right after self-registration.
 `/register` creates the `UserAccount` as `PENDING_VERIFICATION` - **not** logged
-in, not able to log in - and emails a 6-digit OTP (`OtpPurpose.REGISTRATION_VERIFY`,
-same hashed/expiring/attempt-limited `OtpService` the password-reset flow already
-uses) via the same RabbitMQ `email.*` pipeline described below. The browser is
-redirected to `/verify-account?email=...`, which offers Verify and Resend (a
-**server-side** 60-second cooldown on resend, checked against the OTP table's
-`created_at`, not just a disabled button - a replayed POST cannot bypass it).
-Submitting the correct code flips the account to `ACTIVE` and logs the operator in
-programmatically (`AccountVerificationWebController` builds the `UserDetails` via
-the same `CustomUserDetailsService` a normal login would use, then persists it to
-the session via `HttpSessionSecurityContextRepository` - the standard
-Spring-Security-recommended way to authenticate someone outside the login form
-itself) before redirecting to `/portal?verified`. A wrong, expired, or
-attempts-exhausted code shows one generic message, same no-enumeration reasoning
-as password reset: a failed attempt never reveals whether a pending registration
-exists for the email typed.
+in, not able to log in - and emails a 6-digit OTP (`OtpPurpose.REGISTRATION_VERIFY`)
+via the RabbitMQ `email.*` pipeline described below. The browser is redirected to
+`/verify-account?email=...` (Verify and Resend, server-side 60-second cooldown).
+Submitting the correct code flips the account to `ACTIVE` and signs the operator
+in programmatically before redirecting to `/portal?verified`.
+
+### Login OTP (second factor after a correct password)
+
+Added so a leaked or guessed password alone is never enough: once
+`CustomUserDetailsService`/`DaoAuthenticationProvider` would normally succeed, a
+further OTP (`OtpPurpose.LOGIN_VERIFY`) is required before anything is written to
+the session.
+
+- **`OtpGatedAuthenticationProvider`** replaces the `DaoAuthenticationProvider`
+  Spring Boot would otherwise auto-configure - it wraps that *same* provider (same
+  `CustomUserDetailsService`, same `PasswordEncoder`), so wrong password/disabled/
+  `PENDING_VERIFICATION` accounts still fail exactly as before, unchanged. Only
+  once the delegate would have returned a fully authenticated token does it
+  instead email a `LOGIN_VERIFY` code and throw `LoginOtpRequiredException` -
+  from Spring Security's point of view this *is* an authentication failure, which
+  is exactly the point: nothing is ever written to the `SecurityContext` or HTTP
+  session before the OTP step, not even a "partially authenticated" marker.
+- **`LoginOtpRequiredFailureHandler`** catches that specific exception and
+  redirects to `/verify-login?email=...`; every other login failure keeps the
+  existing `/login?error` behavior.
+- **`/verify-login`**: same Verify/Resend shape as `/verify-account` (server-side
+  60-second cooldown, generic incorrect/expired messaging). On success it signs
+  the user in (via the same `ProgrammaticAuthenticator` `/verify-account` uses -
+  extracted into one shared component rather than duplicated) and hands off to
+  the *same* `RoleBasedAuthenticationSuccessHandler` every other login path
+  already uses for the role-based redirect.
+
+All three OTP purposes (`PASSWORD_RESET`, `REGISTRATION_VERIFY`, `LOGIN_VERIFY`)
+share one `OtpService`/`OtpVerification` table, scoped by `(email, purpose)` on
+every lookup - a code generated for one purpose structurally cannot verify
+another, confirmed by a dedicated test
+(`loginOtpCannotBeSatisfiedByARegistrationVerifyCode`). Every purpose gets the
+same guarantees: BCrypt-hash-only storage, 10-minute expiry, 5-attempt cap,
+automatic invalidation of the previous code when a new one is generated, and a
+server-enforced (not just disabled-button) 60-second resend cooldown.
+
+### Google Cloud Console setup
+
+Needed only to actually test or deploy Google login - the app runs normally
+without it (button hidden, everything else unaffected).
+
+1. Go to <https://console.cloud.google.com/>, create or select a project.
+2. **OAuth consent screen**: APIs & Services -> OAuth consent screen. Choose
+   "External" (or "Internal" if using a Google Workspace org), fill in the app
+   name/support email, and add the account(s) that will test it as test users if
+   the app stays in "Testing" publishing status.
+3. **Credentials**: APIs & Services -> Credentials -> Create Credentials -> OAuth
+   client ID -> Application type **Web application**.
+4. **Authorized JavaScript origins**: add the app's own origin (no path) -
+   `http://localhost:8080` for local, `https://your-deployed-domain.example.com`
+   for production.
+5. **Authorized redirect URIs** - Spring Security's standard OAuth2 client
+   callback path, exactly:
+   - Local: `http://localhost:8080/login/oauth2/code/google`
+   - Production: `https://your-deployed-domain.example.com/login/oauth2/code/google`
+
+   This is not configured anywhere in this project's code - Spring Security
+   derives it automatically from each incoming request's own scheme/host/port, so
+   the same code works for both without a profile switch. It must still be
+   registered in Google Cloud Console exactly as above, or Google will refuse the
+   callback.
+6. Copy the generated **Client ID** and **Client Secret** into `GOOGLE_CLIENT_ID`
+   / `GOOGLE_CLIENT_SECRET` in the environment (local `.env`, or the deployment
+   platform's own secrets configuration) - never into a committed file, a README
+   screenshot, source code, or a log statement.
 
 ## 14. Messaging: RabbitMQ and the email flow
 
@@ -467,8 +544,19 @@ Self-registration (PENDING_VERIFICATION, not logged in)
   -> OTP emailed via RabbitMQ (email.* -> EmailSendConsumer -> Mailpit/SMTP)
   -> /verify-account (Verify or Resend, 60s server-enforced cooldown)
   -> correct code -> ACTIVE, auto-logged-in -> /portal?verified
-Login (form or Google) [[PENDING_VERIFICATION accounts cannot authenticate at all]]
+
+Form login (correct password only gets here - wrong password/disabled/
+PENDING_VERIFICATION fails immediately, same as always, no OTP sent)
+  -> LOGIN_VERIFY OTP emailed via the same RabbitMQ pipeline
+  -> /verify-login (Verify or Resend, 60s server-enforced cooldown)
+  -> correct code -> session created only now -> role-based redirect
+
+Google login (ACTIVE account match, or admin/finance email list, or
+auto-provisioned restricted OPERATOR - a PENDING_VERIFICATION match is
+refused outright; no further login OTP needed, Google already verified
+the address)
   -> Role-based redirect (ADMIN/FINANCE_OFFICER -> /, OPERATOR -> /portal)
+
   -> Operator portal (own dues + Pay Online / Pay Cash)
   -> Due payment lifecycle (PENDING -> SUBMITTED/CASH_PENDING -> PAID/FAILED)
   -> Finance confirmation (cash payments only; online resolves itself)
@@ -491,35 +579,37 @@ since they are testing a single class's decisions, not integration.
 
 | Category | Example classes | What it covers |
 |---|---|---|
-| Service unit tests | `DuePaymentServiceImplTest`, `CollectionsServiceTest`, `OtpServiceTest`, `PasswordResetServiceTest`, `AccountVerificationServiceTest`, `UserAccountServiceTest`, `OperatorServiceImplTest`, `RegistrationServiceTest` | business rules in isolation: duplicate-due rejection, payment state transitions and ownership checks, OTP expiry/attempts/single-use/resend-cooldown, password-reset's and account-verification's no-enumeration behavior, single-role enforcement, plate normalization |
+| Service unit tests | `DuePaymentServiceImplTest`, `CollectionsServiceTest`, `OtpServiceTest`, `PasswordResetServiceTest`, `AccountVerificationServiceTest`, `LoginVerificationServiceTest`, `UserAccountServiceTest`, `OperatorServiceImplTest`, `RegistrationServiceTest` | business rules in isolation: duplicate-due rejection, payment state transitions and ownership checks, OTP expiry/attempts/single-use/resend-cooldown, no-enumeration behavior across all three OTP flows, single-role enforcement, plate normalization |
 | Security/RBAC (controller) tests | `DuePaymentWebControllerSecurityTest`, `PortalWebControllerSecurityTest`, `FinanceWebControllerSecurityTest`, `AccessDeniedPageTest` | a role that should be refused a route actually gets a 403, not just a hidden button |
-| Validation/behavioral controller tests | `PasswordResetWebControllerTest` | public reachability, and that an unknown-email reset request behaves identically to a known one |
-| Full-stack flow test | `AccountVerificationFlowTest` | register -> blocked from login/`/portal` while pending -> verify with the real emailed-style OTP -> `/portal` works, auto-logged-in; plus wrong code, resend cooldown, and duplicate-email rejection, all against the real database |
-| Infrastructure/startup tests | `OverdueDuePaymentJobTest`, `LegacyDuePaymentMigrationRunnerTest`, `RoleConflictRepairRunnerTest`, `OAuth2UserRoleMapperTest`, `CustomUserDetailsServiceTest` | scheduled/startup jobs and authentication wiring behave correctly in isolation |
+| Validation/behavioral controller tests | `PasswordResetWebControllerTest`, `AuthWebControllerTest` | public reachability, an unknown-email reset request behaving identically to a known one, the Google button actually being absent (not just hidden by CSS) when unconfigured |
+| Full-stack flow tests | `AccountVerificationFlowTest`, `LoginVerificationFlowTest` | register -> blocked from login/`/portal` while pending -> verify -> `/portal`, auto-logged-in; correct password -> blocked from a session until the login OTP is confirmed -> role-based redirect; wrong password still fails immediately with no OTP sent; a code from one purpose rejected for another - all against the real database |
+| Infrastructure/startup tests | `OverdueDuePaymentJobTest`, `LegacyDuePaymentMigrationRunnerTest`, `RoleConflictRepairRunnerTest`, `OAuth2UserRoleMapperTest` (incl. the `PENDING_VERIFICATION` Google-login refusal), `CustomUserDetailsServiceTest` | scheduled/startup jobs and authentication wiring behave correctly in isolation |
 | Application context test | `TransitDuesSpringBootApplicationTests` | the whole application wires up and starts |
 
 Running it: start the containers (`docker compose up -d`), then `mvn test`. As of
-this session, **all 88 tests pass**. This was run and verified, not assumed - the
+this session, **all 104 tests pass**. This was run and verified, not assumed - the
 exact command and output are part of this session's transcript, not claimed
-without having actually executed it. Two real bugs were caught and fixed while
+without having actually executed it. Real bugs were caught and fixed while
 writing these tests, not just features exercised successfully on the first try:
 `forgotPasswordRejectsAMalformedEmail` found a Thymeleaf page evaluating
 `!submitted` before the controller ever set it on a validation-failure path
-(`PasswordResetWebController`), and `AccountVerificationFlowTest` found a stale
+(`PasswordResetWebController`); `AccountVerificationFlowTest` found a stale
 Postgres CHECK constraint on `otp_verification.purpose` left over from before
-`REGISTRATION_VERIFY` existed - Hibernate's `ddl-auto=update` generates that kind
-of constraint once, at table creation, and never widens it for a later enum
-addition, so an existing database rejected the new value outright until
-`OtpPurposeConstraintMigrationRunner` (same startup-migration pattern as
-`LegacyDuePaymentMigrationRunner`) dropped it.
+`REGISTRATION_VERIFY` existed (`OtpPurposeConstraintMigrationRunner` fixed it,
+same startup-migration pattern as `LegacyDuePaymentMigrationRunner`); and while
+writing the login-OTP controller, forwarding a failed `POST /verify-login` back
+to its own `@PostMapping` via `RequestDispatcher` would have self-looped
+(a forward preserves the HTTP method) - caught before it was ever committed, by
+returning the Thymeleaf view name directly instead, the same way every other
+verify controller in this codebase already does.
 
-Beyond the automated suite, every new feature in this session (operator pay flow,
-cash confirmation, finance collections, password reset, Google-login
-auto-provisioning) was also exercised manually end-to-end through a real browser
-against the real local stack: registering an operator, issuing a due as finance,
-paying it online, requesting and confirming a cash payment, filtering the
-collections page, and completing a password reset via the actual email that
-arrived in Mailpit.
+Beyond the automated suite, every new feature in this session (login OTP, the
+Google OAuth2 fixes, the hidden-when-unconfigured button) was exercised manually
+end-to-end through a real browser against the real local stack: signing in with a
+correct password, confirming no session existed until the OTP step, reading the
+actual "Your TransitDues sign-in code" email out of Mailpit, submitting it, and
+landing on the role-appropriate dashboard - plus confirming the Google button is
+genuinely absent from the rendered page with no client configured.
 
 ## 18. Deployment
 
@@ -611,6 +701,18 @@ configuration, not in a file that ships with the code at all.
   belongs to the same cooperative.
 - **No production secrets management.** `.env` is the only mechanism for
   secrets locally; a real deployment would use a secrets manager instead.
+- **Real Gmail/SMTP delivery has not actually been exercised.** The Gmail SMTP
+  path is implemented and documented (see "Production email" above) and the
+  exact same `MAIL_*` variables are what Mailpit already proves work correctly
+  end-to-end in this session's testing, but no real Gmail App Password has
+  actually been configured and used to send a real email in this session - that
+  claim is deliberately not being made until it has. Verifying it is one
+  `.env` edit plus one manual test away whenever real credentials are available.
+- **No real Google OAuth2 client has been exercised either**, for the same
+  reason - `GOOGLE_CLIENT_ID`/`SECRET` were never set in this session, so the
+  button-hiding behavior and the `OAuth2UserRoleMapper` fixes are covered by
+  (passing) automated tests and code review, not an actual completed Google
+  sign-in against a real Google Cloud OAuth client.
 
 ## 20. Responsive design evidence
 

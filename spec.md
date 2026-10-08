@@ -473,6 +473,69 @@ new account is `PENDING_VERIFICATION` until its email is confirmed.
   disabled button), and confirmed the correct code activates the account, logs
   it in, and lands on `/portal?verified` with dues/payment history intact.
 
+### Session 10: Production-ready auth - login OTP, real email docs, Google fixes
+Three things, each its own commit: documented how the existing `MAIL_*`
+variables already serve both Mailpit and real Gmail SMTP with no code change;
+added a second OTP factor after password login; closed a Google-login gap and
+made the button hide itself when unconfigured.
+
+- **Login OTP (`loginverification` package)**: `OtpGatedAuthenticationProvider`
+  replaces the auto-configured `DaoAuthenticationProvider` - wraps that exact
+  same provider (same `CustomUserDetailsService`/`PasswordEncoder`), and once it
+  would have returned a successful authentication, instead emails a
+  `OtpPurpose.LOGIN_VERIFY` code and throws `LoginOtpRequiredException`. From
+  Spring Security's perspective this *is* a login failure, which is the whole
+  point: nothing is written to the `SecurityContext` or HTTP session until
+  `/verify-login` confirms the code - not even a "half-authenticated" marker.
+  `LoginOtpRequiredFailureHandler` routes that specific exception to
+  `/verify-login?email=...`; every other failure (wrong password, disabled,
+  `PENDING_VERIFICATION`) keeps the existing `/login?error` path untouched,
+  since those exceptions come out of the delegate before the new logic runs.
+  Extracted the "sign in outside the login form" code (previously private in
+  `AccountVerificationWebController`, added Session 9) into a shared
+  `ProgrammaticAuthenticator` rather than writing it a second time; `/verify-login`
+  hands off to the same `RoleBasedAuthenticationSuccessHandler` every other login
+  path already uses.
+- **Google OAuth2 gap closed**: `OAuth2UserRoleMapper` previously granted a
+  matching account's DB role on *any* status match - a self-registered
+  `PENDING_VERIFICATION` email could Google-login and fully bypass the
+  registration OTP. Now refuses that case outright
+  (`OAuth2AuthenticationException`) instead of authenticating it.
+- **Google button hidden when unconfigured**: `AuthWebController` exposes
+  whether `GOOGLE_CLIENT_ID` is set (via a defaulted `app.oauth2.google-client-id`
+  property, not a raw env read - consistent with how every other optional
+  property in this project is exposed); `login.html` wraps the button (and its
+  divider) in that check rather than rendering a link that would 404.
+- **Email**: no code change was needed for "real Gmail in production, Mailpit
+  locally" - `application.properties` already read all six `MAIL_*` variables
+  purely from the environment with Mailpit-shaped defaults. Documented the exact
+  Gmail App Password steps (not "less secure app access"), a transactional-
+  provider alternative, and added SMTP connect/read timeouts suited to a real
+  network hop (harmless no-ops against Mailpit).
+- A real bug was caught while writing `LoginVerificationWebController`, before
+  it was ever committed: the first draft forwarded a failed `POST /verify-login`
+  back to `/verify-login` via `RequestDispatcher` to re-render the Thymeleaf
+  view - but a servlet forward preserves the original request's HTTP method, so
+  that would have forwarded a POST straight back into the same `@PostMapping`,
+  an infinite loop. Fixed by returning the view name directly on the error
+  branches (same as every other verify controller already does), and returning
+  `null` only on the success branch, after handing the response to
+  `RoleBasedAuthenticationSuccessHandler` directly - Spring MVC's documented
+  convention for "this method took an `HttpServletResponse` and handled it
+  itself."
+- Full suite: 104 tests, all passing. Manually verified end-to-end against the
+  real stack: a correct password left no session behind (`/portal` still bounced
+  to login) until the real "Your TransitDues sign-in code" email, read out of
+  Mailpit, was submitted at `/verify-login` - which then landed on the finance
+  dashboard, fully authenticated. Also confirmed the Google button is genuinely
+  absent from `/login`'s rendered HTML with no client configured, not just
+  hidden by CSS.
+- **Not yet exercised**: an actual Gmail App Password and an actual Google OAuth2
+  client - both are implemented and documented, but no real credentials were
+  available this session to prove delivery/login against the real services, only
+  against Mailpit and the automated test suite. See
+  `docs/DOCUMENTATION.md`'s "Known limitations."
+
 ## Running it / testing it
 
 See `README.md` for Docker setup and `.env` layout (that part has not changed).
