@@ -392,6 +392,28 @@ letting operators (not just staff) sign in with Google.
   caused by any app code). Fixed by adding
   `-Djdk.attach.allowAttachSelf=true` to the surefire `argLine` in `pom.xml`.
 
+### Session 8: Documentation and test hardening (P7)
+- Added `docs/DOCUMENTATION.md`: the formal course-deliverable write-up (problem
+  statement, objectives, scope, functional/non-functional requirements, user
+  stories with acceptance criteria, architecture and ER diagrams in Mermaid,
+  SDLC explanation, RBAC/auth/messaging/data-store explanations, testing plan,
+  deployment instructions, known limitations). Deliberately does not duplicate
+  `README.md` (setup + requirement mapping) or this file (the dated build log) -
+  it answers the "why/how as a whole" questions neither of those is organized to
+  answer.
+- Added validation-error test coverage for the P6 password-reset forms
+  (`PasswordResetWebControllerTest`: malformed email, malformed OTP code,
+  mismatched passwords, too-short password). Writing
+  `forgotPasswordRejectsAMalformedEmail` caught a real bug: `forgot-password.html`
+  evaluates `${!submitted}`, but `PasswordResetWebController.requestReset`'s
+  validation-failure branch never set `submitted` on the model, so a validation
+  error threw a SpEL evaluation exception instead of showing the field error -
+  fixed by setting `submitted=false` on that branch, same as the GET handler
+  already did.
+- Full suite: 70 tests, all passing, run against the real local containers (not
+  mocked) - see `docs/DOCUMENTATION.md`'s "Testing plan" for the breakdown by
+  category.
+
 ## Running it / testing it
 
 See `README.md` for Docker setup and `.env` layout (that part has not changed).

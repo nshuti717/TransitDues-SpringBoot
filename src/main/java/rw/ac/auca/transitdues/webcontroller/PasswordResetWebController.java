@@ -33,6 +33,7 @@ public class PasswordResetWebController {
     public String requestReset(@Valid @ModelAttribute("forgotPasswordForm") ForgotPasswordForm form,
                                 BindingResult bindingResult, Model model) {
         if (bindingResult.hasErrors()) {
+            model.addAttribute("submitted", false);
             return "forgot-password";
         }
         passwordResetService.requestReset(form.getEmail());
