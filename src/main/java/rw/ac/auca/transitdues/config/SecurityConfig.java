@@ -14,6 +14,7 @@ import org.springframework.security.oauth2.client.web.DefaultOAuth2Authorization
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
 @Configuration
@@ -24,13 +25,16 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, AccessDeniedHandler accessDeniedHandler,
                                                      AuthenticationSuccessHandler roleBasedAuthenticationSuccessHandler,
+                                                     AuthenticationFailureHandler loginOtpRequiredFailureHandler,
+                                                     OtpGatedAuthenticationProvider otpGatedAuthenticationProvider,
                                                      GrantedAuthoritiesMapper oAuth2UserRoleMapper,
                                                      OAuth2AuthorizationRequestResolver authorizationRequestResolver) throws Exception {
         http
+                .authenticationProvider(otpGatedAuthenticationProvider)
                 .authorizeHttpRequests(requests -> requests
                         .requestMatchers("/css/**", "/webjars/**", "/login", "/register", "/oauth2/**",
                                 "/login/oauth2/**", "/access-denied", "/forgot-password", "/reset-password",
-                                "/verify-account", "/verify-account/resend")
+                                "/verify-account", "/verify-account/resend", "/verify-login", "/verify-login/resend")
                         .permitAll()
                         .requestMatchers("/", "/web/dashboard").hasAnyRole("ADMIN", "FINANCE_OFFICER")
                         .requestMatchers("/web/stages/**").hasAnyRole("ADMIN", "FINANCE_OFFICER")
@@ -43,6 +47,7 @@ public class SecurityConfig {
                 .formLogin(login -> login
                         .loginPage("/login")
                         .successHandler(roleBasedAuthenticationSuccessHandler)
+                        .failureHandler(loginOtpRequiredFailureHandler)
                         .permitAll())
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/login")
@@ -75,11 +80,11 @@ public class SecurityConfig {
     }
 
     /**
-     * No explicit AuthenticationProvider bean is declared here: Spring Boot's
-     * autoconfiguration wires a DaoAuthenticationProvider from whatever
-     * UserDetailsService and PasswordEncoder beans are present in the context
-     * (see CustomUserDetailsService), the same way it did for the in-memory users
-     * this replaced.
+     * OtpGatedAuthenticationProvider (registered above via .authenticationProvider())
+     * replaces the DaoAuthenticationProvider Spring Boot would otherwise
+     * auto-configure from this PasswordEncoder + CustomUserDetailsService - it wraps
+     * that exact same provider, adding the LOGIN_VERIFY OTP step after a correct
+     * password. See its own Javadoc for why.
      */
 
     /**

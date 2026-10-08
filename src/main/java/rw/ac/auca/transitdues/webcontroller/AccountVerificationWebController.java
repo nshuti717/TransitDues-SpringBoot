@@ -4,12 +4,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
-import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -19,7 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.util.UriUtils;
-import rw.ac.auca.transitdues.user.service.CustomUserDetailsService;
+import rw.ac.auca.transitdues.config.ProgrammaticAuthenticator;
 import rw.ac.auca.transitdues.verification.AccountVerificationOutcome;
 import rw.ac.auca.transitdues.verification.AccountVerificationService;
 import rw.ac.auca.transitdues.verification.VerifyAccountForm;
@@ -31,8 +25,7 @@ import java.nio.charset.StandardCharsets;
 public class AccountVerificationWebController {
 
     private final AccountVerificationService accountVerificationService;
-    private final CustomUserDetailsService customUserDetailsService;
-    private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
+    private final ProgrammaticAuthenticator programmaticAuthenticator;
 
     @GetMapping("/verify-account")
     public String verifyAccountForm(@RequestParam(required = false) String email, Model model) {
@@ -58,7 +51,7 @@ public class AccountVerificationWebController {
             return "verify-account";
         }
 
-        signIn(form.getEmail(), request, response);
+        programmaticAuthenticator.signIn(form.getEmail(), request, response);
         return "redirect:/portal?verified";
     }
 
@@ -73,23 +66,5 @@ public class AccountVerificationWebController {
         }
         String encodedEmail = UriUtils.encode(email, StandardCharsets.UTF_8);
         return "redirect:/verify-account?email=" + encodedEmail;
-    }
-
-    /**
-     * Logs the operator in right after verification, the same way a normal
-     * form login would: load their UserDetails, put them on the
-     * SecurityContext, and persist it to the session - the standard
-     * Spring-Security-recommended way to authenticate a user programmatically
-     * outside the login form itself.
-     */
-    private void signIn(String email, HttpServletRequest request, HttpServletResponse response) {
-        UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
-        UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication(authentication);
-        SecurityContextHolder.setContext(context);
-        securityContextRepository.saveContext(context, request, response);
     }
 }
