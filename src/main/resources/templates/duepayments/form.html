@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
-<div th:replace="~{fragments/layout :: layout(~{::#content}, 'duepayments', ${duepayment.id} == null ? 'Record Due Payment' : 'Edit Due Payment', 'Record operator daily stage fees or quarterly cooperative municipal taxes.')}">
+<div th:replace="~{fragments/layout :: layout(~{::#content}, 'duepayments', ${duepayment.id} == null ? 'Issue Due' : 'Edit Due', 'Issue a due for an operator, or record a payment against one already issued.')}">
     <div id="content">
         <!-- Breadcrumb Trail -->
         <nav aria-label="Breadcrumb" class="flex items-center gap-2 text-label-md font-label-md text-secondary mb-space-md">
@@ -10,18 +10,18 @@
                 <span>Due Payments</span>
             </a>
             <span class="text-secondary/50">/</span>
-            <span class="text-on-surface font-medium" th:text="${duepayment.id} == null ? 'Record Payment' : 'Edit Payment'">Record Payment</span>
+            <span class="text-on-surface font-medium" th:text="${duepayment.id} == null ? 'Issue Due' : 'Edit Due'">Issue Due</span>
         </nav>
 
         <!-- Page Header -->
         <div class="mb-space-lg">
-            <h1 class="text-headline-lg font-headline-lg text-on-surface font-bold tracking-tight" th:text="${duepayment.id} == null ? 'Record Due Payment' : 'Edit Due Payment'">Record Due Payment</h1>
+            <h1 class="text-headline-lg font-headline-lg text-on-surface font-bold tracking-tight" th:text="${duepayment.id} == null ? 'Issue Due' : 'Edit Due'">Issue Due</h1>
             <p class="text-body-sm font-body-sm text-on-surface-variant mt-1">
-                Record operator daily stage fees or quarterly cooperative municipal taxes.
+                Issue a due for an operator, or record a payment against one already issued.
             </p>
         </div>
 
-        <!-- Dismissible Error Banner (operator not found) -->
+        <!-- Dismissible Error Banner (operator not found / duplicate due) -->
         <div id="duepayment-error-banner" class="mb-space-lg rounded-lg bg-error-container/40 border border-error/30 p-space-md flex items-start gap-space-sm" th:if="${errorMessage}">
             <span class="material-symbols-outlined text-error text-[20px] mt-0.5" data-icon="error">error</span>
             <div class="flex-1 text-body-sm font-body-sm text-on-error-container leading-relaxed" th:text="${errorMessage}">Error message</div>
@@ -38,7 +38,8 @@
                 <span class="material-symbols-outlined text-[20px] text-primary-container shrink-0 mt-0.5" data-icon="info">info</span>
                 <div>
                     <p class="font-medium text-on-surface text-label-sm font-label-sm">Operational Protocol Note</p>
-                    <p class="mt-0.5">Payments can only be recorded for registered operators. The payment date must be today or a past date.</p>
+                    <p class="mt-0.5" th:if="${duepayment.id} == null">A due is issued as Pending. The same operator cannot be issued the same type twice for the same due date.</p>
+                    <p class="mt-0.5" th:unless="${duepayment.id} == null">Mark a due Paid to record how and when it was paid.</p>
                 </div>
             </div>
 
@@ -82,7 +83,7 @@
                             <span th:errors="*{amount}">Amount must be greater than zero.</span>
                         </div>
                         <p class="text-label-xs font-label-xs text-on-surface-variant" th:unless="${#fields.hasErrors('amount')}">
-                            Enter the payment amount in RWF.
+                            Enter the due amount in RWF.
                         </p>
                     </div>
 
@@ -101,35 +102,70 @@
                     </div>
                 </div>
 
-                <!-- Date Paid & Status -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-space-md">
-                    <div class="space-y-1.5">
-                        <label class="block text-label-md font-label-md text-on-surface font-semibold" for="datePaid">
-                            Date Paid <span class="text-error">*</span>
-                        </label>
-                        <input class="w-full h-11 px-3 rounded-lg bg-surface-container-lowest text-on-surface text-body-md font-body-md focus:outline-none focus:ring-2 transition-all"
-                               th:classappend="${#fields.hasErrors('datePaid')} ? 'border border-error focus:border-error focus:ring-error/20' : 'border border-outline-variant/50 focus:border-primary-container focus:ring-primary-container/20'"
-                               id="datePaid" th:field="*{datePaid}"
-                               th:attr="aria-invalid=${#fields.hasErrors('datePaid')}" type="date"/>
-                        <div class="rounded p-2 bg-error-container/40 border border-error-container text-on-error-container text-label-xs font-label-xs flex items-start gap-1.5" th:if="${#fields.hasErrors('datePaid')}">
-                            <span class="material-symbols-outlined text-[15px] shrink-0 text-error" data-icon="error">error</span>
-                            <span th:errors="*{datePaid}">The payment date cannot be in the future.</span>
+                <!-- Due Date -->
+                <div class="space-y-1.5">
+                    <label class="block text-label-md font-label-md text-on-surface font-semibold" for="dueDate">
+                        Due Date <span class="text-error">*</span>
+                    </label>
+                    <input class="w-full h-11 px-3 rounded-lg bg-surface-container-lowest text-on-surface text-body-md font-body-md focus:outline-none focus:ring-2 transition-all max-w-xs"
+                           th:classappend="${#fields.hasErrors('dueDate')} ? 'border border-error focus:border-error focus:ring-error/20' : 'border border-outline-variant/50 focus:border-primary-container focus:ring-primary-container/20'"
+                           id="dueDate" th:field="*{dueDate}"
+                           th:attr="aria-invalid=${#fields.hasErrors('dueDate')}" type="date"/>
+                    <div class="flex items-center gap-1.5 text-error text-label-xs font-label-xs" th:if="${#fields.hasErrors('dueDate')}">
+                        <span class="material-symbols-outlined text-[14px]" data-icon="warning">warning</span>
+                        <span th:errors="*{dueDate}">Choose a due date.</span>
+                    </div>
+                </div>
+
+                <!-- Payment Recording: edit only -->
+                <div class="pt-space-lg border-t border-outline-variant/30 space-y-space-md" th:unless="${duepayment.id} == null">
+                    <p class="text-label-md font-label-md text-on-surface font-semibold">Payment Recording</p>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-space-md">
+                        <div class="space-y-1.5">
+                            <label class="block text-label-md font-label-md text-on-surface font-semibold" for="status">
+                                Status <span class="text-error">*</span>
+                            </label>
+                            <select class="w-full h-11 px-3 pr-10 rounded-lg bg-surface-container-lowest text-on-surface text-body-md font-body-md focus:outline-none focus:ring-2 transition-all appearance-none cursor-pointer"
+                                    th:classappend="${#fields.hasErrors('status')} ? 'border border-error focus:border-error focus:ring-error/20' : 'border border-outline-variant/50 focus:border-primary-container focus:ring-primary-container/20'"
+                                    id="status" th:field="*{status}" required="required">
+                                <option th:value="${T(rw.ac.auca.transitdues.duepayment.domain.DuePaymentStatus).PENDING}">Pending</option>
+                                <option th:value="${T(rw.ac.auca.transitdues.duepayment.domain.DuePaymentStatus).PAID}">Paid</option>
+                                <option th:value="${T(rw.ac.auca.transitdues.duepayment.domain.DuePaymentStatus).OVERDUE}">Overdue</option>
+                            </select>
+                            <div class="flex items-center gap-1.5 text-error text-label-xs font-label-xs" th:if="${#fields.hasErrors('status')}">
+                                <span class="material-symbols-outlined text-[14px]" data-icon="warning">warning</span>
+                                <span th:errors="*{status}">Status is required.</span>
+                            </div>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="block text-label-md font-label-md text-on-surface font-semibold" for="reference">
+                                Reference
+                            </label>
+                            <input class="w-full h-11 px-3 rounded-lg border border-outline-variant/50 bg-surface-container-lowest text-on-surface text-body-md font-body-md focus:outline-none focus:border-primary-container focus:ring-2 focus:ring-primary-container/20 transition-all"
+                                   id="reference" placeholder="Payment reference" th:field="*{reference}" type="text"/>
                         </div>
                     </div>
 
-                    <div class="space-y-1.5">
-                        <label class="block text-label-md font-label-md text-on-surface font-semibold" for="status">
-                            Status <span class="text-error">*</span>
-                        </label>
-                        <select class="w-full h-11 px-3 pr-10 rounded-lg bg-surface-container-lowest text-on-surface text-body-md font-body-md focus:outline-none focus:ring-2 transition-all appearance-none cursor-pointer"
-                                th:classappend="${#fields.hasErrors('status')} ? 'border border-error focus:border-error focus:ring-error/20' : 'border border-outline-variant/50 focus:border-primary-container focus:ring-primary-container/20'"
-                                id="status" th:field="*{status}" required="required">
-                            <option value="Paid">Paid</option>
-                            <option value="Pending">Pending</option>
-                        </select>
-                        <div class="flex items-center gap-1.5 text-error text-label-xs font-label-xs" th:if="${#fields.hasErrors('status')}">
-                            <span class="material-symbols-outlined text-[14px]" data-icon="warning">warning</span>
-                            <span th:errors="*{status}">Status is required.</span>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-space-md">
+                        <div class="space-y-1.5">
+                            <label class="block text-label-md font-label-md text-on-surface font-semibold" for="paidAt">
+                                Paid At
+                            </label>
+                            <input class="w-full h-11 px-3 rounded-lg border border-outline-variant/50 bg-surface-container-lowest text-on-surface text-body-md font-body-md focus:outline-none focus:border-primary-container focus:ring-2 focus:ring-primary-container/20 transition-all"
+                                   id="paidAt" th:field="*{paidAt}" type="date"/>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="block text-label-md font-label-md text-on-surface font-semibold" for="paymentMethod">
+                                Payment Method
+                            </label>
+                            <select class="w-full h-11 px-3 pr-10 rounded-lg border border-outline-variant/50 bg-surface-container-lowest text-on-surface text-body-md font-body-md focus:outline-none focus:border-primary-container focus:ring-2 focus:ring-primary-container/20 transition-all appearance-none cursor-pointer"
+                                    id="paymentMethod" th:field="*{paymentMethod}">
+                                <option value="">Not set</option>
+                                <option th:value="${T(rw.ac.auca.transitdues.duepayment.domain.PaymentMethod).ONLINE}">Online</option>
+                                <option th:value="${T(rw.ac.auca.transitdues.duepayment.domain.PaymentMethod).CASH}">Cash</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -142,7 +178,7 @@
                     </a>
                     <button class="h-11 w-full sm:w-auto px-6 rounded-lg bg-primary-container text-on-primary text-label-md font-label-md font-medium hover:bg-primary transition-colors shadow-sm active:scale-[0.99] flex items-center justify-center gap-2" type="submit">
                         <span class="material-symbols-outlined text-[18px]" data-icon="check_circle">check_circle</span>
-                        <span>Save Payment</span>
+                        <span th:text="${duepayment.id} == null ? 'Issue Due' : 'Save Changes'">Issue Due</span>
                     </button>
                 </div>
             </form>

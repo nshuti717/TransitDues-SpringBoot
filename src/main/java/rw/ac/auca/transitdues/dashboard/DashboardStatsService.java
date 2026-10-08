@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import rw.ac.auca.transitdues.duepayment.domain.DuePayment;
+import rw.ac.auca.transitdues.duepayment.domain.DuePaymentStatus;
 import rw.ac.auca.transitdues.duepayment.service.DuePaymentService;
 import rw.ac.auca.transitdues.operator.service.OperatorService;
 import rw.ac.auca.transitdues.stage.service.StageService;
@@ -33,11 +34,13 @@ public class DashboardStatsService {
         List<DuePayment> duePayments = duePaymentService.findAllDuePayments();
 
         BigDecimal totalAmountCollected = duePayments.stream()
+                .filter(duePayment -> duePayment.getStatus() == DuePaymentStatus.PAID)
                 .map(DuePayment::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         SortedMap<String, Long> paymentCountsByStatus = duePayments.stream()
-                .collect(Collectors.groupingBy(DuePayment::getStatus, TreeMap::new, Collectors.counting()));
+                .collect(Collectors.groupingBy(duePayment -> duePayment.getEffectiveStatus().name(),
+                        TreeMap::new, Collectors.counting()));
 
         DashboardStats stats = new DashboardStats(totalStages, totalOperators, duePayments.size(),
                 totalAmountCollected, paymentCountsByStatus);

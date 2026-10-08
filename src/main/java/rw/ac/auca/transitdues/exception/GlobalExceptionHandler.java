@@ -8,6 +8,8 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
@@ -43,6 +45,23 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleDuplicatePlateException(DuplicatePlateException ex,
                                                                           HttpServletRequest request) {
         return buildErrorResponse(HttpStatus.CONFLICT, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(DuplicateDuePaymentException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateDuePaymentException(DuplicateDuePaymentException ex,
+                                                                                HttpServletRequest request) {
+        return buildErrorResponse(HttpStatus.CONFLICT, ex.getMessage(), request);
+    }
+
+    /**
+     * Thrown by the framework itself when nothing maps the request (a typo'd
+     * URL, a removed route). More specific than the Exception.class handler
+     * below, so this one wins and the response is a correct 404 instead of a
+     * misleading 500 "Something went wrong".
+     */
+    @ExceptionHandler({NoHandlerFoundException.class, NoResourceFoundException.class})
+    public ResponseEntity<ErrorResponse> handleNotFound(Exception ex, HttpServletRequest request) {
+        return buildErrorResponse(HttpStatus.NOT_FOUND, "No handler found for this request", request);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:replace="~{fragments/layout :: layout(~{::#content}, 'duepayments', 'Bulk Issue', 'Issue the same due to every operator, or every operator at one stage.')}">
+    <div id="content">
+        <!-- Breadcrumb Trail -->
+        <nav aria-label="Breadcrumb" class="flex items-center gap-2 text-label-md font-label-md text-secondary mb-space-md">
+            <a class="text-primary-container hover:underline font-medium flex items-center gap-1" href="/web/duepayments">
+                <span class="material-symbols-outlined text-sm" data-icon="arrow_back">arrow_back</span>
+                <span>Due Payments</span>
+            </a>
+            <span class="text-secondary/50">/</span>
+            <span class="text-on-surface font-medium">Bulk Issue</span>
+        </nav>
+
+        <!-- Page Header -->
+        <div class="mb-space-lg">
+            <h1 class="text-headline-lg font-headline-lg text-on-surface font-bold tracking-tight">Bulk Issue</h1>
+            <p class="text-body-sm font-body-sm text-on-surface-variant mt-1">
+                Issue the same due to every operator, or every operator at one stage. Operators who already have
+                that type and due date are skipped.
+            </p>
+        </div>
+
+        <!-- Result Banner -->
+        <div id="bulk-issue-result-banner" class="mb-space-lg rounded-lg bg-tertiary-container/10 border border-tertiary/30 p-space-md flex items-start gap-space-sm" th:if="${resultMessage}">
+            <span class="material-symbols-outlined text-tertiary text-[20px] mt-0.5" data-icon="check_circle">check_circle</span>
+            <div class="flex-1 text-body-sm font-body-sm text-on-surface-variant leading-relaxed" th:text="${resultMessage}">Issued 0 dues, skipped 0 already issued.</div>
+            <button type="button" aria-label="Dismiss" class="text-tertiary hover:text-on-surface transition-colors"
+                    onclick="document.getElementById('bulk-issue-result-banner').remove()">
+                <span class="material-symbols-outlined text-[18px]">close</span>
+            </button>
+        </div>
+
+        <!-- Main Form Card -->
+        <section class="bg-surface-container-lowest border border-outline-variant/30 rounded-lg p-space-xl shadow-sm max-w-2xl">
+            <form class="space-y-space-lg" method="post" th:action="@{/web/duepayments/bulk-issue}" th:object="${bulkIssueForm}">
+
+                <!-- Amount & Payment Type -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-space-md">
+                    <div class="space-y-1.5">
+                        <label class="block text-label-md font-label-md text-on-surface font-semibold" for="type">
+                            Payment Type <span class="text-error">*</span>
+                        </label>
+                        <select class="w-full h-11 px-3 pr-10 rounded-lg border border-outline-variant/50 bg-surface-container-lowest text-on-surface text-body-md font-body-md focus:outline-none focus:border-primary-container focus:ring-2 focus:ring-primary-container/20 transition-all appearance-none cursor-pointer"
+                                id="type" th:field="*{type}" required="required">
+                            <option th:value="${T(rw.ac.auca.transitdues.duepayment.domain.PaymentType).DAILY}">Daily</option>
+                            <option th:value="${T(rw.ac.auca.transitdues.duepayment.domain.PaymentType).QUARTERLY_TAX}">Quarterly Tax</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="block text-label-md font-label-md text-on-surface font-semibold" for="amount">
+                            Amount (RWF) <span class="text-error">*</span>
+                        </label>
+                        <div class="relative">
+                            <input class="w-full h-11 pl-3 pr-14 rounded-lg bg-surface-container-lowest text-on-surface font-medium text-body-md font-body-md focus:outline-none focus:ring-2 transition-all font-mono"
+                                   th:classappend="${#fields.hasErrors('amount')} ? 'border border-error focus:border-error focus:ring-error/20' : 'border border-outline-variant/50 focus:border-primary-container focus:ring-primary-container/20'"
+                                   id="amount" min="1" step="50" th:field="*{amount}" type="number"/>
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-label-xs font-label-xs text-on-surface-variant font-bold">RWF</div>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-error text-label-xs font-label-xs" th:if="${#fields.hasErrors('amount')}">
+                            <span class="material-symbols-outlined text-[14px]" data-icon="warning">warning</span>
+                            <span th:errors="*{amount}">Amount must be greater than zero.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Due Date -->
+                <div class="space-y-1.5">
+                    <label class="block text-label-md font-label-md text-on-surface font-semibold" for="dueDate">
+                        Due Date <span class="text-error">*</span>
+                    </label>
+                    <input class="w-full h-11 px-3 rounded-lg bg-surface-container-lowest text-on-surface text-body-md font-body-md focus:outline-none focus:ring-2 transition-all max-w-xs"
+                           th:classappend="${#fields.hasErrors('dueDate')} ? 'border border-error focus:border-error focus:ring-error/20' : 'border border-outline-variant/50 focus:border-primary-container focus:ring-primary-container/20'"
+                           id="dueDate" th:field="*{dueDate}" type="date"/>
+                    <div class="flex items-center gap-1.5 text-error text-label-xs font-label-xs" th:if="${#fields.hasErrors('dueDate')}">
+                        <span class="material-symbols-outlined text-[14px]" data-icon="warning">warning</span>
+                        <span th:errors="*{dueDate}">Choose a due date.</span>
+                    </div>
+                </div>
+
+                <!-- Scope -->
+                <div class="space-y-1.5">
+                    <label class="block text-label-md font-label-md text-on-surface font-semibold">
+                        Scope <span class="text-error">*</span>
+                    </label>
+                    <div class="flex flex-col gap-2">
+                        <label class="flex items-center gap-2 text-body-md font-body-md text-on-surface">
+                            <input id="scope-all" name="scope" th:value="${T(rw.ac.auca.transitdues.duepayment.service.BulkIssueScope).ALL}" type="radio" checked="checked"/>
+                            All operators
+                        </label>
+                        <label class="flex items-center gap-2 text-body-md font-body-md text-on-surface">
+                            <input id="scope-stage" name="scope" th:value="${T(rw.ac.auca.transitdues.duepayment.service.BulkIssueScope).STAGE}" type="radio"/>
+                            One stage
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Stage (shown only when scope = one stage) -->
+                <div class="space-y-1.5" id="stage-field">
+                    <label class="block text-label-md font-label-md text-on-surface font-semibold" for="stageId">
+                        Stage
+                    </label>
+                    <select class="w-full h-11 px-3 pr-10 rounded-lg border border-outline-variant/50 bg-surface-container-lowest text-on-surface text-body-md font-body-md focus:outline-none focus:border-primary-container focus:ring-2 focus:ring-primary-container/20 transition-all appearance-none cursor-pointer"
+                            id="stageId" th:field="*{stageId}">
+                        <option value="">Choose a stage...</option>
+                        <option th:each="s : ${stages}" th:text="${s.name}" th:value="${s.id}">Stage Name</option>
+                    </select>
+                    <div class="flex items-center gap-1.5 text-error text-label-xs font-label-xs" th:if="${#fields.hasErrors('stageId')}">
+                        <span class="material-symbols-outlined text-[14px]" data-icon="warning">warning</span>
+                        <span th:errors="*{stageId}">Choose a stage.</span>
+                    </div>
+                </div>
+
+                <!-- Form Action Footer -->
+                <div class="pt-space-lg border-t border-outline-variant/30 flex flex-col sm:flex-row sm:justify-end gap-3">
+                    <a class="h-11 w-full sm:w-auto px-4 rounded-lg border border-outline-variant/50 bg-surface-container-lowest text-on-surface text-label-md font-label-md hover:bg-surface-container transition-colors active:scale-[0.99] flex items-center justify-center"
+                       href="/web/duepayments">
+                        Cancel
+                    </a>
+                    <button class="h-11 w-full sm:w-auto px-6 rounded-lg bg-primary-container text-on-primary text-label-md font-label-md font-medium hover:bg-primary transition-colors shadow-sm active:scale-[0.99] flex items-center justify-center gap-2" type="submit">
+                        <span class="material-symbols-outlined text-[18px]" data-icon="playlist_add">playlist_add</span>
+                        <span>Issue to All Matching Operators</span>
+                    </button>
+                </div>
+            </form>
+        </section>
+        <script th:inline="none">
+            (function () {
+                var scopeAll = document.getElementById('scope-all');
+                var scopeStage = document.getElementById('scope-stage');
+                var stageField = document.getElementById('stage-field');
+
+                function syncStageField() {
+                    stageField.style.display = scopeStage.checked ? '' : 'none';
+                }
+
+                scopeAll.addEventListener('change', syncStageField);
+                scopeStage.addEventListener('change', syncStageField);
+                syncStageField();
+            })();
+        </script>
+    </div>
+</div>
+</body>
+</html>

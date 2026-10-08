@@ -10,12 +10,19 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.*;
 import rw.ac.auca.transitdues.duepayment.domain.DuePayment;
+import rw.ac.auca.transitdues.duepayment.service.BulkIssueForm;
+import rw.ac.auca.transitdues.duepayment.service.BulkIssueResult;
+import rw.ac.auca.transitdues.duepayment.service.BulkIssueScope;
 import rw.ac.auca.transitdues.duepayment.service.DuePaymentService;
+import rw.ac.auca.transitdues.exception.DuplicateDuePaymentException;
 import rw.ac.auca.transitdues.exception.OperatorNotFoundException;
+import rw.ac.auca.transitdues.exception.StageNotFoundException;
 import rw.ac.auca.transitdues.operator.domain.Operator;
 import rw.ac.auca.transitdues.operator.service.OperatorService;
+import rw.ac.auca.transitdues.stage.service.StageService;
 
 import java.beans.PropertyEditorSupport;
+import java.util.List;
 import java.util.UUID;
 
 @Controller
@@ -25,6 +32,7 @@ public class DuePaymentWebController {
 
     private final DuePaymentService duePaymentService;
     private final OperatorService operatorService;
+    private final StageService stageService;
 
     @InitBinder
     public void initBinder(WebDataBinder binder) {
@@ -47,8 +55,15 @@ public class DuePaymentWebController {
     }
 
     @GetMapping("")
-    public String listDuePayments(Model model) {
-        model.addAttribute("duepayments", duePaymentService.findAllDuePayments());
+    public String listDuePayments(@RequestParam(required = false) String status, Model model) {
+        List<DuePayment> duepayments = duePaymentService.findAllDuePayments();
+        if (status != null && !status.isBlank()) {
+            duepayments = duepayments.stream()
+                    .filter(duepayment -> duepayment.getEffectiveStatus().name().equalsIgnoreCase(status))
+                    .toList();
+        }
+        model.addAttribute("duepayments", duepayments);
+        model.addAttribute("statusFilter", status);
         return "duepayments/list";
     }
 
@@ -68,12 +83,46 @@ public class DuePaymentWebController {
         }
         try {
             duePaymentService.createDuePayment(duepayment);
-        } catch (OperatorNotFoundException ex) {
+        } catch (OperatorNotFoundException | DuplicateDuePaymentException ex) {
             model.addAttribute("errorMessage", ex.getMessage());
             model.addAttribute("operators", operatorService.findAllOperators());
             return "duepayments/form";
         }
         return "redirect:/web/duepayments";
+    }
+
+    @GetMapping("/bulk-issue")
+    @PreAuthorize("hasRole('FINANCE_OFFICER')")
+    public String newBulkIssue(Model model) {
+        model.addAttribute("bulkIssueForm", new BulkIssueForm());
+        model.addAttribute("stages", stageService.findAllStages());
+        return "duepayments/bulk-issue";
+    }
+
+    @PostMapping("/bulk-issue")
+    @PreAuthorize("hasRole('FINANCE_OFFICER')")
+    public String bulkIssue(@Valid @ModelAttribute("bulkIssueForm") BulkIssueForm form, BindingResult bindingResult,
+                             Model model) {
+        if (form.getScope() == BulkIssueScope.STAGE && form.getStageId() == null) {
+            bindingResult.rejectValue("stageId", "required", "Choose a stage.");
+        }
+
+        if (!bindingResult.hasErrors()) {
+            try {
+                UUID stageId = form.getScope() == BulkIssueScope.STAGE ? form.getStageId() : null;
+                BulkIssueResult result = duePaymentService.bulkIssueDuePayments(form.getType(), form.getAmount(),
+                        form.getDueDate(), stageId);
+                model.addAttribute("resultMessage", result.summary());
+                model.addAttribute("bulkIssueForm", new BulkIssueForm());
+                model.addAttribute("stages", stageService.findAllStages());
+                return "duepayments/bulk-issue";
+            } catch (StageNotFoundException ex) {
+                bindingResult.rejectValue("stageId", "notfound", ex.getMessage());
+            }
+        }
+
+        model.addAttribute("stages", stageService.findAllStages());
+        return "duepayments/bulk-issue";
     }
 
     @GetMapping("/{id}/edit")
@@ -93,7 +142,7 @@ public class DuePaymentWebController {
         }
         try {
             duePaymentService.updateDuePayment(id, duepayment);
-        } catch (OperatorNotFoundException ex) {
+        } catch (OperatorNotFoundException | DuplicateDuePaymentException ex) {
             model.addAttribute("errorMessage", ex.getMessage());
             model.addAttribute("operators", operatorService.findAllOperators());
             return "duepayments/form";
