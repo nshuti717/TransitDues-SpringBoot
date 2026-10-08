@@ -6,6 +6,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import rw.ac.auca.transitdues.user.domain.AccountStatus;
 import rw.ac.auca.transitdues.user.domain.Role;
 import rw.ac.auca.transitdues.user.domain.UserAccount;
 import rw.ac.auca.transitdues.user.repository.UserAccountRepository;
@@ -36,10 +37,11 @@ public class CustomUserDetailsService implements UserDetailsService {
         UserAccount account = findByEmailOrPhone(normalized)
                 .orElseThrow(() -> new UsernameNotFoundException("No account found for " + normalized));
 
+        boolean pendingVerification = account.getStatus() == AccountStatus.PENDING_VERIFICATION;
         return User.builder()
                 .username(account.getEmail())
                 .password(account.getPasswordHash())
-                .disabled(!account.isEnabled())
+                .disabled(!account.isEnabled() || pendingVerification)
                 .roles(account.getRoles().stream().map(Role::name).toArray(String[]::new))
                 .build();
     }

@@ -131,6 +131,43 @@ class OtpServiceTest {
     }
 
     @Test
+    void secondsUntilResendAllowedIsZeroWhenNoCodeWasEverGenerated() {
+        otpService = newService();
+        when(otpVerificationRepository.findTopByEmailIgnoreCaseAndPurposeOrderByCreatedAtDesc("op@example.com",
+                OtpPurpose.REGISTRATION_VERIFY)).thenReturn(Optional.empty());
+
+        long seconds = otpService.secondsUntilResendAllowed("op@example.com", OtpPurpose.REGISTRATION_VERIFY, 60);
+
+        assertEquals(0, seconds);
+    }
+
+    @Test
+    void secondsUntilResendAllowedIsPositiveRightAfterGenerating() {
+        otpService = newService();
+        OtpVerification latest = new OtpVerification();
+        latest.setCreatedAt(LocalDateTime.now());
+        when(otpVerificationRepository.findTopByEmailIgnoreCaseAndPurposeOrderByCreatedAtDesc("op@example.com",
+                OtpPurpose.REGISTRATION_VERIFY)).thenReturn(Optional.of(latest));
+
+        long seconds = otpService.secondsUntilResendAllowed("op@example.com", OtpPurpose.REGISTRATION_VERIFY, 60);
+
+        assertTrue(seconds > 0 && seconds <= 60);
+    }
+
+    @Test
+    void secondsUntilResendAllowedIsZeroOnceTheCooldownHasPassed() {
+        otpService = newService();
+        OtpVerification latest = new OtpVerification();
+        latest.setCreatedAt(LocalDateTime.now().minusSeconds(61));
+        when(otpVerificationRepository.findTopByEmailIgnoreCaseAndPurposeOrderByCreatedAtDesc("op@example.com",
+                OtpPurpose.REGISTRATION_VERIFY)).thenReturn(Optional.of(latest));
+
+        long seconds = otpService.secondsUntilResendAllowed("op@example.com", OtpPurpose.REGISTRATION_VERIFY, 60);
+
+        assertEquals(0, seconds);
+    }
+
+    @Test
     void verifyReturnsNotFoundWhenThereIsNoUnconsumedCode() {
         otpService = newService();
         when(otpVerificationRepository.findTopByEmailIgnoreCaseAndPurposeAndConsumedFalseOrderByCreatedAtDesc(

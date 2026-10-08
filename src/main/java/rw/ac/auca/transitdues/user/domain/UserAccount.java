@@ -44,6 +44,19 @@ public class UserAccount extends BaseEntity {
     @Column(nullable = false)
     private boolean enabled = true;
 
+    /**
+     * Not marked nullable = false: this column is new, and ddl-auto=update would
+     * try to add it as NOT NULL in one step, which fails on a non-empty table
+     * with no default (same reasoning as DuePayment.dueDate). The Java-side
+     * default below covers every creation path that doesn't explicitly set it
+     * (seeded admin/finance, admin-created operator logins, Google
+     * auto-provisioning); AccountStatusBackfillRunner backfills pre-existing
+     * rows written before this column existed.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private AccountStatus status = AccountStatus.ACTIVE;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_account_role", joinColumns = @JoinColumn(name = "user_account_id"))
     @Column(name = "role", nullable = false)

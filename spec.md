@@ -414,6 +414,65 @@ letting operators (not just staff) sign in with Google.
   mocked) - see `docs/DOCUMENTATION.md`'s "Testing plan" for the breakdown by
   category.
 
+### Session 9: Email OTP verification during operator registration
+Self-registration (`/register`) used to grant immediate `/portal` access. Now a
+new account is `PENDING_VERIFICATION` until its email is confirmed.
+
+- **`AccountStatus`** (`PENDING_VERIFICATION`, `ACTIVE`) - new field on
+  `UserAccount`, defaulting to `ACTIVE` in Java so every creation path except
+  self-registration (seeded admin/finance, admin-created operator logins, Google
+  auto-provisioning) is unaffected without any change at those call sites. Not
+  `nullable=false` at the JPA level (same reasoning as `DuePayment.dueDate`
+  back in Session 4: `ddl-auto=update` can't add a NOT NULL column to a
+  non-empty table) - `AccountStatusBackfillRunner` backfills existing NULL rows
+  to ACTIVE at startup, same pattern as `LegacyDuePaymentMigrationRunner`.
+- **`CustomUserDetailsService`** now reports an account `disabled` if
+  `!enabled` **or** `status == PENDING_VERIFICATION` - one extra condition on
+  the exact mechanism Spring Security already used for admin-disabled accounts,
+  rather than a second, parallel gate. This alone is what makes a pending
+  account unable to reach `/portal`, `/web/**`, or the REST API: it can never
+  establish a session via form login in the first place. Google login and
+  password reset are untouched (different code paths); this status is deliberate
+  scope-limited to self-registration only.
+- **OTP reused as-is**: new `OtpPurpose.REGISTRATION_VERIFY` constant, zero
+  other changes to `OtpService` - same hash-only storage, 10-minute expiry,
+  5-attempt cap, auto-invalidation of earlier codes. New
+  `OtpService.secondsUntilResendAllowed(email, purpose, cooldownSeconds)`
+  (reads the newest row's `createdAt` regardless of consumed state) backs a
+  **server-side** 60-second resend cooldown - the resend button's client-side
+  disable is just UX, not the actual enforcement; a replayed POST is still
+  refused with "please wait N seconds."
+- **New `verification` package** (`VerifyAccountForm`,
+  `AccountVerificationOutcome`, `AccountVerificationService`) mirrors
+  `passwordreset`'s shape exactly: generic incorrect/expired messaging, no
+  account-enumeration on resend (an unknown or already-ACTIVE email is a silent
+  no-op that still looks like success). `RegistrationService.registerOperator`
+  calls `AccountVerificationService.sendVerificationCode(...)` after creating
+  the PENDING_VERIFICATION account; `RegisterWebController` redirects to
+  `/verify-account?email=...` instead of `/login?registered`.
+- **Programmatic login on success**: `AccountVerificationWebController` loads
+  the just-verified account's `UserDetails` via the same
+  `CustomUserDetailsService` a normal login uses, puts it on the
+  `SecurityContext`, and persists it via `HttpSessionSecurityContextRepository`
+  - the standard Spring-Security-documented way to authenticate someone outside
+  the login form - then redirects to `/portal?verified`, which shows "Your
+  account has been verified successfully."
+- **Bug found and fixed while testing**: `AccountVerificationFlowTest`'s first
+  run failed with a Postgres `otp_verification_purpose_check` constraint
+  violation on the very first `REGISTRATION_VERIFY` insert. Hibernate's
+  `ddl-auto=update` had generated that CHECK constraint back when `OtpPurpose`
+  only had `PASSWORD_RESET` (Session 7) and never widens it for a later enum
+  addition - only affects a database that already had the table before this
+  session, never a fresh one. Fixed by `OtpPurposeConstraintMigrationRunner`
+  (drops the stale constraint at startup; the enum is still fully enforced at
+  the application layer by `@Enumerated(STRING)` regardless).
+- Full suite: 88 tests, all passing. Manually verified end-to-end against the
+  real stack: registered an operator, read the real "Verify your TransitDues
+  account" email out of Mailpit, confirmed a wrong code shows the generic error,
+  confirmed the resend cooldown is enforced server-side (not just by the
+  disabled button), and confirmed the correct code activates the account, logs
+  it in, and lands on `/portal?verified` with dues/payment history intact.
+
 ## Running it / testing it
 
 See `README.md` for Docker setup and `.env` layout (that part has not changed).

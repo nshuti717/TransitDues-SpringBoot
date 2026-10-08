@@ -11,10 +11,12 @@ import rw.ac.auca.transitdues.exception.InvalidRegistrationException;
 import rw.ac.auca.transitdues.operator.domain.Operator;
 import rw.ac.auca.transitdues.operator.service.OperatorService;
 import rw.ac.auca.transitdues.stage.domain.Stage;
+import rw.ac.auca.transitdues.user.domain.AccountStatus;
 import rw.ac.auca.transitdues.user.domain.Role;
 import rw.ac.auca.transitdues.user.domain.UserAccount;
 import rw.ac.auca.transitdues.user.repository.UserAccountRepository;
 import rw.ac.auca.transitdues.user.service.UserAccountService;
+import rw.ac.auca.transitdues.verification.AccountVerificationService;
 
 import java.util.Locale;
 import java.util.Set;
@@ -36,11 +38,15 @@ public class RegistrationService {
     private final UserAccountService userAccountService;
     private final AuditLogService auditLogService;
     private final PasswordEncoder passwordEncoder;
+    private final AccountVerificationService accountVerificationService;
 
     /**
-     * Creates an Operator and its OPERATOR-only login account in one transaction:
-     * if the capacity or duplicate-plate check inside operatorService.createOperator
-     * fails, nothing is persisted for either row.
+     * Creates an Operator and its OPERATOR-only login account - PENDING_VERIFICATION,
+     * not usable yet - in one transaction: if the capacity or duplicate-plate check
+     * inside operatorService.createOperator fails, nothing is persisted for either
+     * row. A verification email is sent after the transaction commits via
+     * AccountVerificationService; the account cannot sign in or reach /portal until
+     * that code is submitted at /verify-account (see CustomUserDetailsService).
      */
     @Transactional
     public UserAccount registerOperator(RegisterForm form) {
@@ -74,12 +80,14 @@ public class RegistrationService {
         account.setEmail(email);
         account.setPasswordHash(passwordEncoder.encode(form.getPassword()));
         account.setEnabled(true);
+        account.setStatus(AccountStatus.PENDING_VERIFICATION);
         account.setRoles(Set.of(Role.OPERATOR));
         account.setOperator(savedOperator);
         UserAccount savedAccount = userAccountService.save(account);
 
         auditLogService.record("UserAccount", savedAccount.getId().toString(), "CREATE",
-                "Operator self-registration", email);
+                "Operator self-registration (pending email verification)", email);
+        accountVerificationService.sendVerificationCode(email);
         return savedAccount;
     }
 

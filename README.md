@@ -91,7 +91,7 @@ audit record and a simulated notification.
 |---|---|---|
 | `ADMIN` | the seeded `admin` user, or a Google login whose email is in `OAUTH_ADMIN_EMAILS` | Dashboard, Stages, Operators, Due Payments, Audit Log (full read/write on stages and operators) |
 | `FINANCE_OFFICER` | the seeded `finance` user, or a Google login whose email is in `OAUTH_FINANCE_EMAILS` | Dashboard, Stages, Operators (read-only), Due Payments (full read/write), Collections |
-| `OPERATOR` | self-registration at `/register`, admin creating an operator with a login, or a Google login matching neither list above (auto-provisioned, restricted) | `/portal` only |
+| `OPERATOR` | self-registration at `/register` (email verification via OTP required before first sign-in - see below), admin creating an operator with a login, or a Google login matching neither list above (auto-provisioned, restricted, no verification needed since Google already verified the email) | `/portal` only |
 
 ### Configuring Google role emails
 

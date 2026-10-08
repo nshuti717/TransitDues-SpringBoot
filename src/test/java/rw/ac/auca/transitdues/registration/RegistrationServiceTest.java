@@ -11,10 +11,12 @@ import rw.ac.auca.transitdues.exception.DuplicateEmailException;
 import rw.ac.auca.transitdues.exception.StageCapacityExceededException;
 import rw.ac.auca.transitdues.operator.domain.Operator;
 import rw.ac.auca.transitdues.operator.service.OperatorService;
+import rw.ac.auca.transitdues.user.domain.AccountStatus;
 import rw.ac.auca.transitdues.user.domain.Role;
 import rw.ac.auca.transitdues.user.domain.UserAccount;
 import rw.ac.auca.transitdues.user.repository.UserAccountRepository;
 import rw.ac.auca.transitdues.user.service.UserAccountService;
+import rw.ac.auca.transitdues.verification.AccountVerificationService;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -47,6 +49,9 @@ class RegistrationServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    @Mock
+    private AccountVerificationService accountVerificationService;
+
     @InjectMocks
     private RegistrationService registrationService;
 
@@ -76,8 +81,10 @@ class RegistrationServiceTest {
         assertTrue(result.getRoles().contains(Role.OPERATOR));
         assertEquals(1, result.getRoles().size());
         assertEquals(savedOperator, result.getOperator());
+        assertEquals(AccountStatus.PENDING_VERIFICATION, result.getStatus());
         verify(auditLogService).record(eq("UserAccount"), anyString(), eq("CREATE"), anyString(),
                 eq("new.operator@example.com"));
+        verify(accountVerificationService).sendVerificationCode("new.operator@example.com");
     }
 
     @Test

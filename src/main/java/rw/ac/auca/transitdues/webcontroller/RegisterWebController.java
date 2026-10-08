@@ -20,7 +20,9 @@ import rw.ac.auca.transitdues.registration.RegistrationService;
 import rw.ac.auca.transitdues.registration.StageOption;
 import rw.ac.auca.transitdues.stage.domain.Stage;
 import rw.ac.auca.transitdues.stage.repository.StageRepository;
+import org.springframework.web.util.UriUtils;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Controller
@@ -71,7 +73,8 @@ public class RegisterWebController {
             return "register";
         }
 
-        return "redirect:/login?registered";
+        String encodedEmail = UriUtils.encode(form.getEmail(), StandardCharsets.UTF_8);
+        return "redirect:/verify-account?email=" + encodedEmail;
     }
 
     private List<StageOption> buildStageOptions() {

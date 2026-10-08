@@ -11,4 +11,7 @@ public interface OtpVerificationRepository extends JpaRepository<OtpVerification
 
     Optional<OtpVerification> findTopByEmailIgnoreCaseAndPurposeAndConsumedFalseOrderByCreatedAtDesc(
             String email, OtpPurpose purpose);
+
+    /** Newest row regardless of consumed status - used for resend cooldown checks. */
+    Optional<OtpVerification> findTopByEmailIgnoreCaseAndPurposeOrderByCreatedAtDesc(String email, OtpPurpose purpose);
 }

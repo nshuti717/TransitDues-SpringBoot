@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Locale;
 import java.util.Optional;
@@ -90,6 +91,25 @@ public class OtpService {
         otp.setConsumed(true);
         otpVerificationRepository.save(otp);
         return OtpVerificationResult.VERIFIED;
+    }
+
+    /**
+     * How many seconds must still pass before a new code may be requested for
+     * this email+purpose, based on when the most recent one (consumed or not)
+     * was generated. Zero means a resend is allowed right now. Enforced
+     * server-side so a "resend" button's cooldown can't be bypassed by
+     * replaying the request.
+     */
+    public long secondsUntilResendAllowed(String email, OtpPurpose purpose, long cooldownSeconds) {
+        Optional<OtpVerification> latest = otpVerificationRepository
+                .findTopByEmailIgnoreCaseAndPurposeOrderByCreatedAtDesc(normalize(email), purpose);
+        if (latest.isEmpty()) {
+            return 0;
+        }
+
+        LocalDateTime nextAllowedAt = latest.get().getCreatedAt().plusSeconds(cooldownSeconds);
+        long remaining = Duration.between(LocalDateTime.now(), nextAllowedAt).getSeconds();
+        return Math.max(0, remaining);
     }
 
     private String generateSixDigitCode() {

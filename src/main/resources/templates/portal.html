@@ -5,6 +5,13 @@
     <div id="content">
 
         <!-- Flash banners -->
+        <div id="verified-banner" class="mb-space-lg rounded-lg bg-tertiary-container/10 border border-tertiary/30 p-space-md flex items-start gap-space-sm" th:if="${param.verified}">
+            <span class="material-symbols-outlined text-tertiary text-[20px] mt-0.5" data-icon="check_circle">check_circle</span>
+            <div class="flex-1 text-body-sm font-body-sm text-on-surface-variant leading-relaxed">Your account has been verified successfully.</div>
+            <button type="button" aria-label="Dismiss" class="text-tertiary hover:text-on-surface transition-colors" onclick="document.getElementById('verified-banner').remove()">
+                <span class="material-symbols-outlined text-[18px]">close</span>
+            </button>
+        </div>
         <div id="success-banner" class="mb-space-lg rounded-lg bg-tertiary-container/10 border border-tertiary/30 p-space-md flex items-start gap-space-sm" th:if="${successMessage}">
             <span class="material-symbols-outlined text-tertiary text-[20px] mt-0.5" data-icon="check_circle">check_circle</span>
             <div class="flex-1 text-body-sm font-body-sm text-on-surface-variant leading-relaxed" th:text="${successMessage}">Success.</div>

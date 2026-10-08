@@ -87,6 +87,7 @@ responsive instead).
 | # | Requirement | Where |
 |---|---|---|
 | F1 | An operator can self-register with a stage, plate number and phone | `/register` |
+| F1a | A self-registered operator must verify their email with an OTP before they can sign in or reach the portal | `/verify-account`, `CustomUserDetailsService` |
 | F2 | An operator, finance officer or admin can sign in by email/phone+password, or by Google | `/login` |
 | F3 | A signed-in operator sees only their own profile, dues and payment history | `/portal` |
 | F4 | An operator can pay a due online (simulated) or request to pay it in cash | `/portal` |
@@ -119,11 +120,28 @@ These are written to be checkable, not just aspirational:
   operators are expected to use this on a phone.
 - **Auditability**: every create/update/delete of a Stage, Operator, UserAccount or
   DuePayment writes an entry to the MongoDB audit log with who, what, when.
-- **Testability**: the full test suite (70 tests as of this writing) runs against
+- **Testability**: the full test suite (88 tests as of this writing) runs against
   the real local Postgres/Mongo/Redis/RabbitMQ containers, not mocks of them - see
   [Testing plan](#17-testing-plan).
 
 ## 7. User stories and acceptance criteria
+
+**As a new operator, I want my email verified before I can use my account, so a
+typo'd or someone-else's address can't register as mine.**
+- Given I just submitted valid registration details, when the form succeeds, then
+  I am redirected to `/verify-account` and am **not** signed in yet.
+- Given I have not verified, when I try to sign in with the correct password or
+  open `/portal` directly, then I am refused - the account cannot authenticate at
+  all, not just "shown fewer things."
+- Given I enter the correct 6-digit code before it expires, then my account
+  becomes active, I am signed in automatically, and I land on `/portal` with
+  "Your account has been verified successfully."
+- Given I enter a wrong, expired, or already-used-up code, then I see one generic
+  message ("That code is incorrect or has expired...") - never a different
+  message for "no such registration" versus "wrong code."
+- Given I click Resend before 60 seconds have passed since the last code, then
+  the server refuses it with how many seconds remain - clicking the button
+  again, or replaying the request directly, cannot bypass this.
 
 **As an operator, I want to see my own dues, so I know what I owe.**
 - Given I am signed in as an operator, when I open `/portal`, then I see only
@@ -279,6 +297,7 @@ erDiagram
         string email UK
         string passwordHash
         boolean enabled
+        string status "PENDING_VERIFICATION / ACTIVE"
         uuid operator_id FK "nullable, unique"
     }
     USER_ACCOUNT_ROLE {
@@ -302,7 +321,7 @@ erDiagram
     OTP_VERIFICATION {
         uuid id PK
         string email
-        string purpose "PASSWORD_RESET"
+        string purpose "PASSWORD_RESET / REGISTRATION_VERIFY"
         string codeHash
         datetime expiresAt
         int attempts
@@ -330,6 +349,14 @@ Three roles, exactly one per account: `ADMIN`, `FINANCE_OFFICER`, `OPERATOR`,
 enforced centrally in `UserAccountService.save(...)` (throws if an account would
 hold anything other than exactly one role).
 
+Orthogonal to role is `AccountStatus` (`PENDING_VERIFICATION`/`ACTIVE`): a
+self-registered operator starts `PENDING_VERIFICATION` and cannot sign in at all
+- not "signed in with reduced access", genuinely unable to authenticate -
+until they submit the emailed OTP at `/verify-account` (see [Authentication and
+OAuth2](#13-authentication-and-oauth2)). Every other account-creation path
+(seeded ADMIN/FINANCE_OFFICER, an admin creating an operator login, Google
+auto-provisioning) defaults to `ACTIVE` and is unaffected by this gate.
+
 | Area | ADMIN | FINANCE_OFFICER | OPERATOR |
 |---|---|---|---|
 | Dashboard, Stages, Operators | read/write | read/write (Operators read-only) | - |
@@ -355,18 +382,42 @@ Two independent ways to authenticate, both producing the same kind of
 `Authentication` principal:
 
 1. **Form login** (`/login`): email-or-phone + password, checked against
-   `UserAccount.passwordHash` (BCrypt) via `CustomUserDetailsService`.
+   `UserAccount.passwordHash` (BCrypt) via `CustomUserDetailsService`, which also
+   reports the account `disabled` if `enabled=false` **or** its status is
+   `PENDING_VERIFICATION` - reusing the exact mechanism Spring Security already
+   uses for admin-disabled accounts, rather than inventing a second one.
 2. **Google OAuth2/OIDC** (`/oauth2/authorization/google`): `OAuth2UserRoleMapper`
    decides the resulting role(s) in order - an existing account's own DB role,
    then the `OAUTH_ADMIN_EMAILS`/`OAUTH_FINANCE_EMAILS` lists, then an
    auto-provisioned restricted OPERATOR account. See `spec.md` Session 7 for the
    full reasoning; the short version is that Google can never grant ADMIN or
    FINANCE_OFFICER on its own, only an existing database account or the two
-   configured email lists can.
+   configured email lists can. This path is not subject to the email-verification
+   gate below - Google's own sign-in already verified the address.
 
 `RoleBasedAuthenticationSuccessHandler` routes a freshly authenticated session to
 `/` (ADMIN/FINANCE_OFFICER) or `/portal` (OPERATOR-only), regardless of which of
 the two methods was used.
+
+### Email verification for self-registration
+
+A third, narrower path exists only for the moment right after self-registration.
+`/register` creates the `UserAccount` as `PENDING_VERIFICATION` - **not** logged
+in, not able to log in - and emails a 6-digit OTP (`OtpPurpose.REGISTRATION_VERIFY`,
+same hashed/expiring/attempt-limited `OtpService` the password-reset flow already
+uses) via the same RabbitMQ `email.*` pipeline described below. The browser is
+redirected to `/verify-account?email=...`, which offers Verify and Resend (a
+**server-side** 60-second cooldown on resend, checked against the OTP table's
+`created_at`, not just a disabled button - a replayed POST cannot bypass it).
+Submitting the correct code flips the account to `ACTIVE` and logs the operator in
+programmatically (`AccountVerificationWebController` builds the `UserDetails` via
+the same `CustomUserDetailsService` a normal login would use, then persists it to
+the session via `HttpSessionSecurityContextRepository` - the standard
+Spring-Security-recommended way to authenticate someone outside the login form
+itself) before redirecting to `/portal?verified`. A wrong, expired, or
+attempts-exhausted code shows one generic message, same no-enumeration reasoning
+as password reset: a failed attempt never reveals whether a pending registration
+exists for the email typed.
 
 ## 14. Messaging: RabbitMQ and the email flow
 
@@ -388,6 +439,13 @@ and sends it. The HTTP response the user sees ("a code has been sent") does not
 wait for the email to actually leave the building - this is the normal,
 intentional trade-off of decoupling via a message broker.
 
+Registration email verification reuses this exact path unchanged -
+`AccountVerificationService.sendVerificationCode(...)` is the same
+generate-then-publish shape, with subject `"Verify your TransitDues account"` and
+`OtpPurpose.REGISTRATION_VERIFY` instead of `PASSWORD_RESET`. No new queue or
+routing key was needed; both land on the same `email.*` -> `transitdues.email.queue`
+-> `EmailSendConsumer` pipeline.
+
 ## 15. PostgreSQL and MongoDB usage
 
 - **PostgreSQL** holds every record that has referential integrity requirements
@@ -405,7 +463,11 @@ intentional trade-off of decoupling via a message broker.
 ## 16. Page / API flow
 
 ```
-Registration/Login
+Self-registration (PENDING_VERIFICATION, not logged in)
+  -> OTP emailed via RabbitMQ (email.* -> EmailSendConsumer -> Mailpit/SMTP)
+  -> /verify-account (Verify or Resend, 60s server-enforced cooldown)
+  -> correct code -> ACTIVE, auto-logged-in -> /portal?verified
+Login (form or Google) [[PENDING_VERIFICATION accounts cannot authenticate at all]]
   -> Role-based redirect (ADMIN/FINANCE_OFFICER -> /, OPERATOR -> /portal)
   -> Operator portal (own dues + Pay Online / Pay Cash)
   -> Due payment lifecycle (PENDING -> SUBMITTED/CASH_PENDING -> PAID/FAILED)
@@ -429,20 +491,27 @@ since they are testing a single class's decisions, not integration.
 
 | Category | Example classes | What it covers |
 |---|---|---|
-| Service unit tests | `DuePaymentServiceImplTest`, `CollectionsServiceTest`, `OtpServiceTest`, `PasswordResetServiceTest`, `UserAccountServiceTest`, `OperatorServiceImplTest`, `RegistrationServiceTest` | business rules in isolation: duplicate-due rejection, payment state transitions and ownership checks, OTP expiry/attempts/single-use, password-reset's no-enumeration behavior, single-role enforcement, plate normalization |
+| Service unit tests | `DuePaymentServiceImplTest`, `CollectionsServiceTest`, `OtpServiceTest`, `PasswordResetServiceTest`, `AccountVerificationServiceTest`, `UserAccountServiceTest`, `OperatorServiceImplTest`, `RegistrationServiceTest` | business rules in isolation: duplicate-due rejection, payment state transitions and ownership checks, OTP expiry/attempts/single-use/resend-cooldown, password-reset's and account-verification's no-enumeration behavior, single-role enforcement, plate normalization |
 | Security/RBAC (controller) tests | `DuePaymentWebControllerSecurityTest`, `PortalWebControllerSecurityTest`, `FinanceWebControllerSecurityTest`, `AccessDeniedPageTest` | a role that should be refused a route actually gets a 403, not just a hidden button |
 | Validation/behavioral controller tests | `PasswordResetWebControllerTest` | public reachability, and that an unknown-email reset request behaves identically to a known one |
+| Full-stack flow test | `AccountVerificationFlowTest` | register -> blocked from login/`/portal` while pending -> verify with the real emailed-style OTP -> `/portal` works, auto-logged-in; plus wrong code, resend cooldown, and duplicate-email rejection, all against the real database |
 | Infrastructure/startup tests | `OverdueDuePaymentJobTest`, `LegacyDuePaymentMigrationRunnerTest`, `RoleConflictRepairRunnerTest`, `OAuth2UserRoleMapperTest`, `CustomUserDetailsServiceTest` | scheduled/startup jobs and authentication wiring behave correctly in isolation |
 | Application context test | `TransitDuesSpringBootApplicationTests` | the whole application wires up and starts |
 
 Running it: start the containers (`docker compose up -d`), then `mvn test`. As of
-this session, **all 70 tests pass**. This was run and verified, not assumed - the
+this session, **all 88 tests pass**. This was run and verified, not assumed - the
 exact command and output are part of this session's transcript, not claimed
-without having actually executed it. One of those validation tests
-(`forgotPasswordRejectsAMalformedEmail`) caught a real bug while being written - a
-Thymeleaf page evaluating `!submitted` before the controller ever set `submitted`
-on its validation-failure path - fixed in `PasswordResetWebController` the same
-session it was found.
+without having actually executed it. Two real bugs were caught and fixed while
+writing these tests, not just features exercised successfully on the first try:
+`forgotPasswordRejectsAMalformedEmail` found a Thymeleaf page evaluating
+`!submitted` before the controller ever set it on a validation-failure path
+(`PasswordResetWebController`), and `AccountVerificationFlowTest` found a stale
+Postgres CHECK constraint on `otp_verification.purpose` left over from before
+`REGISTRATION_VERIFY` existed - Hibernate's `ddl-auto=update` generates that kind
+of constraint once, at table creation, and never widens it for a later enum
+addition, so an existing database rejected the new value outright until
+`OtpPurposeConstraintMigrationRunner` (same startup-migration pattern as
+`LegacyDuePaymentMigrationRunner`) dropped it.
 
 Beyond the automated suite, every new feature in this session (operator pay flow,
 cash confirmation, finance collections, password reset, Google-login
