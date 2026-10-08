@@ -26,6 +26,7 @@ public class PaymentEventLog {
 
     private String duePaymentId;
 
+    @Indexed
     private String operatorId;
 
     private String operatorName;
@@ -38,4 +39,8 @@ public class PaymentEventLog {
 
     @Indexed(direction = IndexDirection.DESCENDING)
     private LocalDateTime occurredAt;
+
+    private String reference;
+
+    private String paymentMethod;
 }

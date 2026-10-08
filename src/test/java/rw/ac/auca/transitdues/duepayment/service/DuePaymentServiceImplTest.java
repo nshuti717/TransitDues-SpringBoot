@@ -5,12 +5,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.test.util.ReflectionTestUtils;
 import rw.ac.auca.transitdues.audit.AuditLogService;
 import rw.ac.auca.transitdues.duepayment.domain.DuePayment;
 import rw.ac.auca.transitdues.duepayment.domain.DuePaymentStatus;
+import rw.ac.auca.transitdues.duepayment.domain.PaymentMethod;
 import rw.ac.auca.transitdues.duepayment.domain.PaymentType;
 import rw.ac.auca.transitdues.duepayment.repository.DuePaymentRepository;
 import rw.ac.auca.transitdues.exception.DuplicateDuePaymentException;
+import rw.ac.auca.transitdues.exception.InvalidPaymentStateException;
 import rw.ac.auca.transitdues.messaging.DuePaymentEventPublisher;
 import rw.ac.auca.transitdues.operator.domain.Operator;
 import rw.ac.auca.transitdues.operator.repository.OperatorRepository;
@@ -24,6 +28,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -116,6 +122,130 @@ class DuePaymentServiceImplTest {
         verify(duePaymentRepository, times(2)).save(any(DuePayment.class));
         verify(auditLogService, times(2)).record(eq("DuePayment"), anyString(), eq("CREATE"), anyString());
         verify(duePaymentEventPublisher, times(2)).publish(any());
+    }
+
+    @Test
+    void initiateOnlinePaymentMovesPendingDueToSubmitted() {
+        Operator operator = operator(UUID.randomUUID(), "Jean Claude Ishimwe");
+        DuePayment due = payableDue(operator, DuePaymentStatus.PENDING);
+        when(duePaymentRepository.findById(due.getId())).thenReturn(Optional.of(due));
+        when(duePaymentRepository.save(any(DuePayment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        DuePayment result = duePaymentService.initiateOnlinePayment(due.getId(), operator);
+
+        assertEquals(DuePaymentStatus.SUBMITTED, result.getStatus());
+        assertEquals(PaymentMethod.ONLINE, result.getPaymentMethod());
+        verify(duePaymentEventPublisher).publish(any());
+    }
+
+    @Test
+    void initiateOnlinePaymentRejectsAnotherOperatorsDue() {
+        Operator owner = operator(UUID.randomUUID(), "Owner Operator");
+        Operator intruder = operator(UUID.randomUUID(), "Intruder Operator");
+        DuePayment due = payableDue(owner, DuePaymentStatus.PENDING);
+        when(duePaymentRepository.findById(due.getId())).thenReturn(Optional.of(due));
+
+        assertThrows(AccessDeniedException.class,
+                () -> duePaymentService.initiateOnlinePayment(due.getId(), intruder));
+        verify(duePaymentRepository, never()).save(any(DuePayment.class));
+    }
+
+    @Test
+    void initiateOnlinePaymentRejectsAnAlreadyPaidDue() {
+        Operator operator = operator(UUID.randomUUID(), "Jean Claude Ishimwe");
+        DuePayment due = payableDue(operator, DuePaymentStatus.PAID);
+        when(duePaymentRepository.findById(due.getId())).thenReturn(Optional.of(due));
+
+        assertThrows(InvalidPaymentStateException.class,
+                () -> duePaymentService.initiateOnlinePayment(due.getId(), operator));
+        verify(duePaymentRepository, never()).save(any(DuePayment.class));
+    }
+
+    @Test
+    void confirmOnlinePaymentSucceedsWhenGatewayDoesNotFail() {
+        Operator operator = operator(UUID.randomUUID(), "Jean Claude Ishimwe");
+        DuePayment due = payableDue(operator, DuePaymentStatus.SUBMITTED);
+        ReflectionTestUtils.setField(duePaymentService, "simulatedFailureRate", 0.0);
+        when(duePaymentRepository.findById(due.getId())).thenReturn(Optional.of(due));
+        when(duePaymentRepository.save(any(DuePayment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        DuePayment result = duePaymentService.confirmOnlinePayment(due.getId(), operator);
+
+        assertEquals(DuePaymentStatus.PAID, result.getStatus());
+        assertNotNull(result.getReference());
+        assertNotNull(result.getPaidAt());
+    }
+
+    @Test
+    void confirmOnlinePaymentFailsWhenGatewayIsForcedToFail() {
+        Operator operator = operator(UUID.randomUUID(), "Jean Claude Ishimwe");
+        DuePayment due = payableDue(operator, DuePaymentStatus.SUBMITTED);
+        ReflectionTestUtils.setField(duePaymentService, "simulatedFailureRate", 1.0);
+        when(duePaymentRepository.findById(due.getId())).thenReturn(Optional.of(due));
+        when(duePaymentRepository.save(any(DuePayment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        DuePayment result = duePaymentService.confirmOnlinePayment(due.getId(), operator);
+
+        assertEquals(DuePaymentStatus.FAILED, result.getStatus());
+        assertNull(result.getReference());
+    }
+
+    @Test
+    void confirmOnlinePaymentRejectsADueThatWasNeverSubmitted() {
+        Operator operator = operator(UUID.randomUUID(), "Jean Claude Ishimwe");
+        DuePayment due = payableDue(operator, DuePaymentStatus.PENDING);
+        when(duePaymentRepository.findById(due.getId())).thenReturn(Optional.of(due));
+
+        assertThrows(InvalidPaymentStateException.class,
+                () -> duePaymentService.confirmOnlinePayment(due.getId(), operator));
+    }
+
+    @Test
+    void cancelOnlinePaymentRevertsSubmittedDueToPending() {
+        Operator operator = operator(UUID.randomUUID(), "Jean Claude Ishimwe");
+        DuePayment due = payableDue(operator, DuePaymentStatus.SUBMITTED);
+        when(duePaymentRepository.findById(due.getId())).thenReturn(Optional.of(due));
+        when(duePaymentRepository.save(any(DuePayment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        DuePayment result = duePaymentService.cancelOnlinePayment(due.getId(), operator);
+
+        assertEquals(DuePaymentStatus.PENDING, result.getStatus());
+        assertNull(result.getPaymentMethod());
+    }
+
+    @Test
+    void requestCashPaymentMovesPendingDueToCashPending() {
+        Operator operator = operator(UUID.randomUUID(), "Jean Claude Ishimwe");
+        DuePayment due = payableDue(operator, DuePaymentStatus.PENDING);
+        when(duePaymentRepository.findById(due.getId())).thenReturn(Optional.of(due));
+        when(duePaymentRepository.save(any(DuePayment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        DuePayment result = duePaymentService.requestCashPayment(due.getId(), operator);
+
+        assertEquals(DuePaymentStatus.CASH_PENDING, result.getStatus());
+        assertEquals(PaymentMethod.CASH, result.getPaymentMethod());
+    }
+
+    @Test
+    void requestCashPaymentRejectsAnotherOperatorsDue() {
+        Operator owner = operator(UUID.randomUUID(), "Owner Operator");
+        Operator intruder = operator(UUID.randomUUID(), "Intruder Operator");
+        DuePayment due = payableDue(owner, DuePaymentStatus.PENDING);
+        when(duePaymentRepository.findById(due.getId())).thenReturn(Optional.of(due));
+
+        assertThrows(AccessDeniedException.class,
+                () -> duePaymentService.requestCashPayment(due.getId(), intruder));
+    }
+
+    private DuePayment payableDue(Operator operator, DuePaymentStatus status) {
+        DuePayment due = new DuePayment();
+        due.setId(UUID.randomUUID());
+        due.setOperator(operator);
+        due.setType(PaymentType.DAILY);
+        due.setAmount(new BigDecimal("1000"));
+        due.setDueDate(LocalDate.now().plusDays(1));
+        due.setStatus(status);
+        return due;
     }
 
     private Operator operator(UUID id, String fullName) {

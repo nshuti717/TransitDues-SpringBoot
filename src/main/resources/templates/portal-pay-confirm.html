@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:replace="~{fragments/layout :: layout(~{::#content}, 'portal', 'Confirm Payment', 'Review and confirm your payment.')}">
+    <div id="content">
+        <nav aria-label="Breadcrumb" class="flex items-center gap-2 text-label-md font-label-md text-secondary mb-space-md">
+            <a class="text-primary-container hover:underline font-medium flex items-center gap-1" href="/portal">
+                <span class="material-symbols-outlined text-sm" data-icon="arrow_back">arrow_back</span>
+                <span>My Portal</span>
+            </a>
+            <span class="text-secondary/50">/</span>
+            <span class="text-on-surface font-medium">Confirm Payment</span>
+        </nav>
+
+        <section class="bg-surface-container-lowest border border-outline-variant/30 rounded-lg p-space-xl shadow-sm max-w-lg">
+            <h1 class="text-headline-lg font-headline-lg text-on-surface font-bold tracking-tight mb-space-sm">Confirm Payment</h1>
+            <p class="text-body-sm font-body-sm text-on-surface-variant mb-space-lg">
+                This is a simulated payment: no real money moves. Confirming records the payment as successful (or
+                occasionally failed, as a real gateway might).
+            </p>
+
+            <dl class="divide-y divide-outline-variant/20 border border-outline-variant/20 rounded-lg mb-space-lg">
+                <div class="px-space-md py-space-sm flex items-center justify-between gap-space-md">
+                    <dt class="text-label-sm font-label-sm text-on-surface-variant">Type</dt>
+                    <dd class="text-body-md font-body-md text-on-surface font-medium" th:text="${duepayment.type.name() == 'DAILY'} ? 'Daily' : 'Quarterly Tax'">Daily</dd>
+                </div>
+                <div class="px-space-md py-space-sm flex items-center justify-between gap-space-md">
+                    <dt class="text-label-sm font-label-sm text-on-surface-variant">Due Date</dt>
+                    <dd class="text-body-md font-body-md text-on-surface font-medium" th:text="${#temporals.format(duepayment.dueDate, 'dd MMM yyyy')}">01 Jan 2026</dd>
+                </div>
+                <div class="px-space-md py-space-sm flex items-center justify-between gap-space-md">
+                    <dt class="text-label-sm font-label-sm text-on-surface-variant">Amount</dt>
+                    <dd class="text-body-md font-body-md text-on-surface font-semibold" th:text="'RWF ' + ${#numbers.formatDecimal(duepayment.amount, 0, 'COMMA', 0, 'POINT')}">RWF 1,000</dd>
+                </div>
+                <div class="px-space-md py-space-sm flex items-center justify-between gap-space-md">
+                    <dt class="text-label-sm font-label-sm text-on-surface-variant">Payment Method</dt>
+                    <dd class="text-body-md font-body-md text-on-surface font-medium">Online</dd>
+                </div>
+            </dl>
+
+            <div class="flex flex-col sm:flex-row sm:justify-end gap-3">
+                <form th:action="@{/portal/duepayments/{id}/pay/cancel(id=${duepayment.id})}" method="post" class="w-full sm:w-auto">
+                    <button class="h-11 w-full sm:w-auto px-4 rounded-lg border border-outline-variant/50 bg-surface-container-lowest text-on-surface text-label-md font-label-md hover:bg-surface-container transition-colors active:scale-[0.99]" type="submit">
+                        Cancel
+                    </button>
+                </form>
+                <form th:action="@{/portal/duepayments/{id}/pay/confirm(id=${duepayment.id})}" method="post" class="w-full sm:w-auto">
+                    <button class="h-11 w-full sm:w-auto px-6 rounded-lg bg-primary-container text-on-primary text-label-md font-label-md font-medium hover:bg-primary transition-colors shadow-sm active:scale-[0.99] flex items-center justify-center gap-2" type="submit">
+                        <span class="material-symbols-outlined text-[18px]" data-icon="task_alt">task_alt</span>
+                        <span>Confirm Payment</span>
+                    </button>
+                </form>
+            </div>
+        </section>
+    </div>
+</div>
+</body>
+</html>

@@ -16,4 +16,6 @@ public interface DuePaymentRepository extends JpaRepository<DuePayment, UUID> {
     boolean existsByOperatorIdAndTypeAndDueDateAndIdNot(UUID operatorId, PaymentType type, LocalDate dueDate, UUID id);
 
     List<DuePayment> findByStatusAndDueDateBefore(DuePaymentStatus status, LocalDate date);
+
+    List<DuePayment> findByOperatorIdOrderByDueDateDesc(UUID operatorId);
 }

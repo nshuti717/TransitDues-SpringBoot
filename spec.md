@@ -102,12 +102,22 @@ authenticate the normal OAuth2 way and are mapped to ADMIN/FINANCE_OFFICER only
 
 A due starts life **PENDING** with a `dueDate`, issued by a FINANCE_OFFICER (ADMIN
 can view but never issue - enforced by `@PreAuthorize("hasRole('FINANCE_OFFICER')")`
-on every issuing/mutating endpoint). It becomes:
+on every issuing/mutating endpoint). From there, two paths lead to PAID:
 
-- **PAID** when a finance officer records payment against it (sets `reference`,
-  `paidAt`, `paymentMethod` via the edit form - same route as before, now with the
-  new fields).
-- **OVERDUE** automatically once `dueDate` has passed, while still PENDING.
+- **Finance records it directly** (sets `reference`, `paidAt`, `paymentMethod` via
+  the edit form) - the original path, still available for e.g. backfilling a
+  payment collected outside the app.
+- **The operator pays it themselves from `/portal`** (added in Session 5, see
+  below): PENDING/OVERDUE/FAILED &rarr; **SUBMITTED** (online payment started)
+  &rarr; **PAID** or **FAILED** (operator confirms, outcome is simulated), or
+  PENDING/OVERDUE/FAILED &rarr; **CASH_PENDING** (operator asks to pay cash) &rarr;
+  PAID once a finance officer confirms it (that confirmation action is P5, not yet
+  built - a CASH_PENDING due is a dead end in the UI until then, beyond the
+  operator seeing "Awaiting finance confirmation").
+
+**OVERDUE** happens automatically once `dueDate` has passed, while still PENDING -
+unrelated to the payment-attempt states above, and a due can go straight from
+OVERDUE into SUBMITTED/CASH_PENDING/PAID the same as PENDING can.
 
 Two ways to issue:
 
@@ -256,6 +266,48 @@ handling: any unmapped URL returned a JSON 500 "Something went wrong" instead of
 a 404, because `NoHandlerFoundException`/`NoResourceFoundException` were being
 swallowed by the generic `Exception.class` handler. Added specific handlers for
 both so they return a proper 404.
+
+### Session 5: Operator pay flow (P4)
+Added the actual payment half of the due payment lifecycle: operators can now act on
+their own dues from `/portal`, not just view a static profile.
+
+- `DuePaymentStatus` gained `SUBMITTED` (online payment started, awaiting the
+  operator's confirm step), `CASH_PENDING` (operator asked to pay cash, awaiting a
+  finance officer to confirm it - that confirmation itself is P5), and `FAILED` (a
+  simulated online payment that did not succeed, operator may retry). `DuePayment`
+  gained `submittedAt`.
+- Four new `DuePaymentService` methods - `initiateOnlinePayment`,
+  `confirmOnlinePayment`, `cancelOnlinePayment`, `requestCashPayment` - all take the
+  calling operator and throw `AccessDeniedException` if it does not own the due
+  (prevents paying someone else's due) and `InvalidPaymentStateException` if the due
+  is not in a payable state (PENDING/OVERDUE/FAILED only - prevents double-paying an
+  already PAID/SUBMITTED/CASH_PENDING due). No real payment gateway exists, so
+  `confirmOnlinePayment` simulates one: a `app.payments.simulated-failure-rate`
+  property (default 0.0, i.e. never fails) decides PAID vs FAILED, letting tests
+  force the FAILED path deterministically without flakiness.
+- New `/portal/duepayments/{id}/pay` (start), `/pay/confirm` (GET shows a review
+  page, POST resolves it), `/pay/cancel`, and `/request-cash` endpoints on
+  `PortalWebController`, all under the existing `/portal/**` OPERATOR-only rule.
+  `/portal` itself now lists the operator's dues with Pay Online / Pay Cash actions
+  matching their state, plus a "Recent Payments" panel.
+- "Recent Payments" reads the existing Mongo `PaymentEventLog` collection (no new
+  entity) rather than persisting payment history separately - `DuePaymentEvent` and
+  `PaymentEventLog` gained `reference`/`paymentMethod` fields so that collection
+  carries what the UI needs, and four new event-type constants
+  (`duepayment.submitted`/`.paid`/`.failed`/`.cashrequested`) so the panel can filter
+  to actual payment outcomes rather than every due mutation. All of this flows
+  through the existing RabbitMQ publish/consume path unchanged.
+- Closed a latent gap found while wiring this up: `/api/duepayments/**` (the REST
+  controller) had no role restriction at all - unlike its `/web/duepayments/**`
+  equivalent, any authenticated user including OPERATOR could hit full CRUD. Added
+  the same `@PreAuthorize` rules (ADMIN/FINANCE_OFFICER read, FINANCE_OFFICER
+  write) the web controller already had.
+- The finance "issue/edit" form's status dropdown only listed PENDING/PAID/OVERDUE;
+  left as-is it would have silently reset a SUBMITTED/CASH_PENDING/FAILED due back
+  to PENDING if a finance officer opened and saved it without touching status
+  (Thymeleaf selects an unmatched value to nothing, browser defaults to the first
+  option). Extended it, and the due-payments list's status filter/badge colors, to
+  cover all six statuses.
 
 ## Running it / testing it
 

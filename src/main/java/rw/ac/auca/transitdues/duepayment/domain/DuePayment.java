@@ -89,6 +89,14 @@ public class DuePayment extends BaseEntity {
     @Column(name = "issued_by")
     private String issuedBy;
 
+    /**
+     * When the operator started a payment attempt (online submission or a cash
+     * request). Null until then; left in place (not cleared) once paid, as a
+     * record of when the attempt began.
+     */
+    @Column(name = "submitted_at")
+    private LocalDate submittedAt;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "operator_id", nullable = false)
     private Operator operator;

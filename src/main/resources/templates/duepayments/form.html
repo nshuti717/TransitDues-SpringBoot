@@ -129,7 +129,10 @@
                                     th:classappend="${#fields.hasErrors('status')} ? 'border border-error focus:border-error focus:ring-error/20' : 'border border-outline-variant/50 focus:border-primary-container focus:ring-primary-container/20'"
                                     id="status" th:field="*{status}" required="required">
                                 <option th:value="${T(rw.ac.auca.transitdues.duepayment.domain.DuePaymentStatus).PENDING}">Pending</option>
+                                <option th:value="${T(rw.ac.auca.transitdues.duepayment.domain.DuePaymentStatus).SUBMITTED}">Submitted (awaiting operator confirmation)</option>
+                                <option th:value="${T(rw.ac.auca.transitdues.duepayment.domain.DuePaymentStatus).CASH_PENDING}">Cash pending (awaiting finance confirmation)</option>
                                 <option th:value="${T(rw.ac.auca.transitdues.duepayment.domain.DuePaymentStatus).PAID}">Paid</option>
+                                <option th:value="${T(rw.ac.auca.transitdues.duepayment.domain.DuePaymentStatus).FAILED}">Failed</option>
                                 <option th:value="${T(rw.ac.auca.transitdues.duepayment.domain.DuePaymentStatus).OVERDUE}">Overdue</option>
                             </select>
                             <div class="flex items-center gap-1.5 text-error text-label-xs font-label-xs" th:if="${#fields.hasErrors('status')}">

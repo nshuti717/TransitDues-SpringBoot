@@ -37,7 +37,10 @@
                             name="status" onchange="this.form.submit()">
                         <option value="" th:selected="${statusFilter == null or statusFilter == ''}">All statuses</option>
                         <option value="PENDING" th:selected="${statusFilter == 'PENDING'}">Pending</option>
+                        <option value="SUBMITTED" th:selected="${statusFilter == 'SUBMITTED'}">Submitted</option>
+                        <option value="CASH_PENDING" th:selected="${statusFilter == 'CASH_PENDING'}">Cash pending</option>
                         <option value="PAID" th:selected="${statusFilter == 'PAID'}">Paid</option>
+                        <option value="FAILED" th:selected="${statusFilter == 'FAILED'}">Failed</option>
                         <option value="OVERDUE" th:selected="${statusFilter == 'OVERDUE'}">Overdue</option>
                     </select>
                 </form>
@@ -73,7 +76,10 @@
                         <td class="px-space-md text-body-sm font-body-sm text-on-surface-variant whitespace-nowrap" th:text="${#temporals.format(duepayment.dueDate, 'dd MMM yyyy')}">01 Jan 2026</td>
                         <td class="px-space-md whitespace-nowrap">
                             <span class="inline-flex items-center rounded-full px-2.5 py-1 text-label-sm font-label-sm font-medium"
-                                  th:classappend="${duepayment.effectiveStatus.name() == 'PAID'} ? 'bg-[#2A9D8F]/15 text-[#2A9D8F]' : (${duepayment.effectiveStatus.name() == 'OVERDUE'} ? 'bg-error-container text-error' : 'bg-[#E9A23B]/20 text-[#B8771B]')"
+                                  th:classappend="${duepayment.effectiveStatus.name() == 'PAID'} ? 'bg-[#2A9D8F]/15 text-[#2A9D8F]' :
+                                                  (${duepayment.effectiveStatus.name() == 'OVERDUE' or duepayment.effectiveStatus.name() == 'FAILED'} ? 'bg-error-container text-error' :
+                                                  (${duepayment.effectiveStatus.name() == 'CASH_PENDING'} ? 'bg-secondary-container text-secondary' :
+                                                  (${duepayment.effectiveStatus.name() == 'SUBMITTED'} ? 'bg-primary-container/20 text-primary' : 'bg-[#E9A23B]/20 text-[#B8771B]')))"
                                   th:text="${duepayment.effectiveStatus.name()}">PENDING</span>
                         </td>
                         <td class="px-space-md text-body-sm font-body-sm text-on-surface-variant whitespace-nowrap" th:text="${duepayment.reference} ?: '-'">-</td>

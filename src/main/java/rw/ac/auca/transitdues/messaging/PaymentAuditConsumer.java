@@ -23,7 +23,7 @@ public class PaymentAuditConsumer {
     public void handle(DuePaymentEvent event) {
         PaymentEventLog eventLog = new PaymentEventLog(null, event.eventType(), event.duePaymentId(),
                 event.operatorId(), event.operatorName(), event.amount(), event.status(), event.performedBy(),
-                event.occurredAt());
+                event.occurredAt(), event.reference(), event.paymentMethod());
         paymentEventLogRepository.save(eventLog);
         log.info("Recorded payment event {} for DuePayment {}", event.eventType(), event.duePaymentId());
     }
