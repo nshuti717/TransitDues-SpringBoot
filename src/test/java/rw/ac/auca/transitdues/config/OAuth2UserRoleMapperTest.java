@@ -8,9 +8,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
 import rw.ac.auca.transitdues.audit.AuditLogService;
+import rw.ac.auca.transitdues.user.domain.AccountStatus;
 import rw.ac.auca.transitdues.user.domain.Role;
 import rw.ac.auca.transitdues.user.domain.UserAccount;
 import rw.ac.auca.transitdues.user.repository.UserAccountRepository;
@@ -23,6 +25,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -111,6 +114,20 @@ class OAuth2UserRoleMapperTest {
         assertTrue(saved.isEnabled());
         verify(auditLogService).record(eq("UserAccount"), anyString(), eq("CREATE"), anyString(),
                 eq("stranger@example.com"));
+    }
+
+    @Test
+    void pendingVerificationAccountIsRefusedRatherThanGrantedOperator() {
+        OAuth2UserRoleMapper mapper = mapper();
+        UserAccount pendingAccount = new UserAccount();
+        pendingAccount.setStatus(AccountStatus.PENDING_VERIFICATION);
+        pendingAccount.setRoles(Set.of(Role.OPERATOR));
+        when(userAccountRepository.findByEmailIgnoreCase("pending@example.com")).thenReturn(Optional.of(pendingAccount));
+
+        assertThrows(OAuth2AuthenticationException.class,
+                () -> mapper.mapAuthorities(Set.of(oidcAuthority("pending@example.com"))));
+
+        verify(userAccountService, never()).save(any());
     }
 
     private OAuth2UserRoleMapper mapper() {

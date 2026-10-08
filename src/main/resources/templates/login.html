@@ -198,17 +198,19 @@
 </button>
 </div>
 </form>
-<!-- Divider -->
+<!-- Google OAuth2 Sign In: hidden entirely (not just disabled) when no client
+     is configured, since /oauth2/authorization/google would 404 otherwise. -->
+<th:block th:if="${googleLoginEnabled}">
 <div class="flex items-center gap-space-sm my-space-lg">
 <div class="flex-1 h-px bg-outline-variant/40"></div>
 <span class="font-label-xs text-label-xs text-secondary uppercase tracking-wider">or</span>
 <div class="flex-1 h-px bg-outline-variant/40"></div>
 </div>
-<!-- Google OAuth2 Sign In -->
 <a class="w-full bg-surface-container-lowest text-on-surface py-2.5 px-space-md rounded-lg font-label-md text-label-md shadow-sm border border-outline-variant/60 hover:bg-surface-container-low transition-all duration-150 flex items-center justify-center gap-space-sm active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-primary-container/40"
    href="/oauth2/authorization/google">
 <span>Continue with Google</span>
 </a>
+</th:block>
 <!-- Operator self-registration -->
 <div class="mt-space-lg text-center">
 <a class="font-label-sm text-label-sm text-primary-container hover:text-primary transition-colors focus:outline-none focus:underline" href="/register">
