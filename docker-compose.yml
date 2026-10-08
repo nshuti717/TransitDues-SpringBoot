@@ -69,8 +69,27 @@ services:
       retries: 5
       start_period: 30s
 
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: transitdues-mailpit
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
+    volumes:
+      - mailpit_data:/data
+    environment:
+      MP_MAX_MESSAGES: 500
+      MP_DATABASE: /data/mailpit.db
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8025/readyz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
 volumes:
   postgres_data:
   mongo_data:
   redis_data:
   rabbitmq_data:
+  mailpit_data:

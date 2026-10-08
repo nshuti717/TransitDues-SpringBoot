@@ -338,6 +338,60 @@ it, not just operators seeing "Awaiting finance confirmation" forever.
   working a stack of cash requests expects each confirm/reject to be reflected
   immediately, not up to 60 seconds later.
 
+### Session 7: OTP, email via RabbitMQ, and Google login for operators (P6)
+Added a real email channel and backed two things with it: password reset, and
+letting operators (not just staff) sign in with Google.
+
+- **OTP** (`otp` package): `OtpVerification` (Postgres) stores only a BCrypt hash
+  of a random 6-digit code, an `expiresAt`, a per-record `attempts`/`maxAttempts`,
+  and `consumed`. `OtpService.generate(email, purpose)` invalidates (consumes) any
+  earlier unconsumed code for that email+purpose before creating the new one,
+  so only the latest code is ever valid; `verify(...)` enforces expiry, the
+  attempt cap, and single-use, returning a result enum (`VERIFIED`/`INCORRECT`/
+  `EXPIRED`/`TOO_MANY_ATTEMPTS`/`NOT_FOUND`) rather than throwing, so callers can
+  show a specific message without the service dictating UI text.
+- **Email via RabbitMQ** (`email` package): `EmailEventPublisher` publishes an
+  `EmailEvent` to the existing `transitdues.events` exchange on a new routing-key
+  pattern (`email.*`, parallel to the due-payment `duepayment.*` one); a new
+  `transitdues.email.queue` binds to it. `EmailSendConsumer` is the consumer -
+  unlike `NotificationConsumer`'s simulated log lines, this one is a real send via
+  `JavaMailSender`, to Mailpit locally (new service in docker-compose.yml, UI at
+  http://localhost:8025) so nothing is sent to a real inbox in dev.
+  `spring-boot-starter-mail` added to pom.xml for this.
+- **Real "Forgot password?" flow** (`passwordreset` package,
+  `PasswordResetWebController`, public `/forgot-password` -> `/reset-password`):
+  replaces the fake link removed in Session 1 - it now does something.
+  `requestReset` always behaves identically whether or not the email belongs to
+  an account (no account-enumeration oracle); `resetPassword` collapses
+  incorrect/expired/not-found into one generic message for the same reason, only
+  "too many attempts" gets a distinct message. A successful reset goes through
+  `UserAccountService.save(...)`, the one sanctioned UserAccount write path.
+- **Google login for operators**: `OAuth2UserRoleMapper` (still a
+  `GrantedAuthoritiesMapper`, same wiring as before) now resolves a Google
+  login's role in three steps instead of one - an email matching an existing
+  `UserAccount` uses that account's own DB role(s); otherwise the
+  `app.roles.admin-emails`/`finance-emails` lists are checked exactly as before;
+  otherwise a **restricted OPERATOR-only account is auto-provisioned** (no linked
+  `Operator`, a random BCrypt-encoded password that can never be typed in via the
+  login form - the account is Google-login-only) so the person lands on
+  `/portal` instead of a dead end. A Google login can still never grant ADMIN or
+  FINANCE_OFFICER through auto-provisioning - only an existing DB account or the
+  configured email lists can.
+- `.env.example` now documents `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` (it
+  referenced them in `application.properties` already but never listed them) and
+  the new `MAIL_*`/`OTP_*` variables. `app.*.client-id`/`client-secret` stay as
+  bare `${GOOGLE_CLIENT_ID}` with **no** default: Spring Boot's OAuth2
+  autoconfiguration treats a genuinely-unresolved property as "no client
+  registered" and skips it gracefully, but an explicit empty-string default
+  (`${GOOGLE_CLIENT_ID:}`) is bound as a present-but-blank value and fails
+  startup with "Client id of registration 'google' must not be empty" - this was
+  tried and reverted during this session once it broke `contextLoads`.
+- Unrelated infra fix found while running the full suite: `mvn test` was
+  intermittently failing every Mockito-based test with "Could not self-attach to
+  current VM using external process" (a Windows JVM self-attach restriction, not
+  caused by any app code). Fixed by adding
+  `-Djdk.attach.allowAttachSelf=true` to the surefire `argLine` in `pom.xml`.
+
 ## Running it / testing it
 
 See `README.md` for Docker setup and `.env` layout (that part has not changed).

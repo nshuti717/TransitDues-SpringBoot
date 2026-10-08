@@ -29,7 +29,8 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(requests -> requests
                         .requestMatchers("/css/**", "/webjars/**", "/login", "/register", "/oauth2/**",
-                                "/login/oauth2/**", "/access-denied").permitAll()
+                                "/login/oauth2/**", "/access-denied", "/forgot-password", "/reset-password")
+                        .permitAll()
                         .requestMatchers("/", "/web/dashboard").hasAnyRole("ADMIN", "FINANCE_OFFICER")
                         .requestMatchers("/web/stages/**").hasAnyRole("ADMIN", "FINANCE_OFFICER")
                         .requestMatchers("/web/operators/**").hasAnyRole("ADMIN", "FINANCE_OFFICER")

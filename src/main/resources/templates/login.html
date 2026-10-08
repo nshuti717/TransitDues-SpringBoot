@@ -145,8 +145,15 @@
             Your operator account has been created. Sign in below.
           </div>
 </div>
+<!-- Password reset confirmation banner -->
+<div class="mb-space-lg rounded bg-tertiary-container/10 border border-tertiary/30 p-space-sm flex items-start gap-space-sm" th:if="${param.reset}">
+<span class="material-symbols-outlined text-tertiary text-[18px] mt-0.5" data-icon="check_circle">check_circle</span>
+<div class="font-body-sm text-body-sm text-on-surface-variant leading-tight">
+            Your password has been reset. Sign in with your new password.
+          </div>
+</div>
 <!-- Sign-in prompt -->
-<div class="mb-space-lg rounded bg-surface-container-low border border-outline-variant/30 p-space-sm flex items-start gap-space-sm" th:unless="${param.error != null or param.logout != null or param.registered != null}">
+<div class="mb-space-lg rounded bg-surface-container-low border border-outline-variant/30 p-space-sm flex items-start gap-space-sm" th:unless="${param.error != null or param.logout != null or param.registered != null or param.reset != null}">
 <span class="material-symbols-outlined text-primary text-[18px] mt-0.5" data-icon="info">info</span>
 <div class="font-body-sm text-body-sm text-on-surface-variant leading-tight">
             Please enter your email or phone and password to sign in.
@@ -172,6 +179,9 @@
 <label class="block font-label-md text-label-md text-on-surface" for="password">
                 Password
               </label>
+<a class="font-label-sm text-label-sm text-primary-container hover:text-primary transition-colors focus:outline-none focus:underline" href="/forgot-password">
+                Forgot password?
+              </a>
 </div>
 <div class="relative">
 <input class="w-full h-10 px-space-md rounded-lg border border-outline-variant/60 bg-surface-container-lowest text-on-surface font-body-md text-body-md placeholder:text-outline/70 focus:outline-none focus:border-primary-container focus:ring-2 focus:ring-primary-container/20 tracking-wider transition-all duration-150" id="password" name="password" placeholder="••••••••" required="" type="password"/>
@@ -197,7 +207,7 @@
 <!-- Google OAuth2 Sign In -->
 <a class="w-full bg-surface-container-lowest text-on-surface py-2.5 px-space-md rounded-lg font-label-md text-label-md shadow-sm border border-outline-variant/60 hover:bg-surface-container-low transition-all duration-150 flex items-center justify-center gap-space-sm active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-primary-container/40"
    href="/oauth2/authorization/google">
-<span>Continue with Google (staff accounts)</span>
+<span>Continue with Google</span>
 </a>
 <!-- Operator self-registration -->
 <div class="mt-space-lg text-center">

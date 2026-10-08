@@ -17,6 +17,9 @@ public class RabbitConfig {
     public static final String NOTIFICATION_QUEUE = "transitdues.notification.queue";
     public static final String ROUTING_KEY_PATTERN = "duepayment.*";
 
+    public static final String EMAIL_QUEUE = "transitdues.email.queue";
+    public static final String EMAIL_ROUTING_KEY_PATTERN = "email.*";
+
     @Bean
     public TopicExchange transitDuesEventsExchange() {
         return new TopicExchange(EXCHANGE, true, false);
@@ -40,6 +43,16 @@ public class RabbitConfig {
     @Bean
     public Binding notificationBinding(Queue notificationQueue, TopicExchange transitDuesEventsExchange) {
         return BindingBuilder.bind(notificationQueue).to(transitDuesEventsExchange).with(ROUTING_KEY_PATTERN);
+    }
+
+    @Bean
+    public Queue emailQueue() {
+        return new Queue(EMAIL_QUEUE, true);
+    }
+
+    @Bean
+    public Binding emailBinding(Queue emailQueue, TopicExchange transitDuesEventsExchange) {
+        return BindingBuilder.bind(emailQueue).to(transitDuesEventsExchange).with(EMAIL_ROUTING_KEY_PATTERN);
     }
 
     /**
