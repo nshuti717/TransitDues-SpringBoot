@@ -32,6 +32,7 @@ together as a whole" questions in one place.
 17. [Testing plan](#17-testing-plan)
 18. [Deployment](#18-deployment)
 19. [Known limitations](#19-known-limitations)
+20. [Responsive design evidence](#20-responsive-design-evidence)
 
 ## 1. Problem statement
 
@@ -485,3 +486,25 @@ in scope for this course project - see [Known limitations](#19-known-limitations
   belongs to the same cooperative.
 - **No production secrets management.** `.env` is the only mechanism for
   secrets locally; a real deployment would use a secrets manager instead.
+
+## 20. Responsive design evidence
+
+`design-reference/` holds the original desktop-only high-fidelity mockups the UI
+was built from (a Stitch design export). They do not show mobile layouts, so the
+screenshots below are real captures of the running application at phone width
+(375px) next to the same page at desktop width (1440px), rather than a separate
+mobile mockup - stronger evidence than a static design file, since it's the actual
+implementation, not a drawing of it.
+
+| 375px (phone) | 1440px (desktop) |
+|---|---|
+| ![Dashboard, mobile](responsive-evidence/dashboard-mobile-375px.jpg) | ![Dashboard, desktop](responsive-evidence/dashboard-desktop-1440px.jpg) |
+
+The sidebar collapses to an off-canvas menu behind a hamburger button below the
+`lg` breakpoint and the metric cards stack to a single column
+(`fragments/layout.html`'s `#sidebar`/`#sidebar-toggle` script and the `grid
+grid-cols-1 sm:grid-cols-2 xl:grid-cols-4` classes on `dashboard.html`, repeated
+with the same pattern on every other page). The login page (no sidebar) reflows
+the same way:
+
+![Login, mobile](responsive-evidence/login-mobile-375px.jpg)
