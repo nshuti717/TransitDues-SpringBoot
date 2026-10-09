@@ -14,6 +14,7 @@ import rw.ac.auca.transitdues.exception.DuplicatePlateException;
 import rw.ac.auca.transitdues.exception.InvalidRegistrationException;
 import rw.ac.auca.transitdues.exception.StageCapacityExceededException;
 import rw.ac.auca.transitdues.exception.StageNotFoundException;
+import rw.ac.auca.transitdues.operator.domain.ApprovalStatus;
 import rw.ac.auca.transitdues.operator.repository.OperatorRepository;
 import rw.ac.auca.transitdues.registration.RegisterForm;
 import rw.ac.auca.transitdues.registration.RegistrationService;
@@ -23,13 +24,18 @@ import rw.ac.auca.transitdues.stage.repository.StageRepository;
 import org.springframework.web.util.UriUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 @Controller
 @RequiredArgsConstructor
 public class RegisterWebController {
 
     private static final String KIGALI_FRAGMENT = "Kigali";
+    /** A rejected or deactivated operator frees up the stage slot they held. */
+    private static final Set<ApprovalStatus> RELEASES_STAGE_SLOT =
+            EnumSet.of(ApprovalStatus.REJECTED, ApprovalStatus.DEACTIVATED);
 
     private final RegistrationService registrationService;
     private final StageRepository stageRepository;
@@ -81,7 +87,7 @@ public class RegisterWebController {
         List<Stage> kigaliStages = stageRepository.findByLocationContainingIgnoreCase(KIGALI_FRAGMENT);
         return kigaliStages.stream()
                 .map(stage -> {
-                    int used = operatorRepository.findByStageId(stage.getId()).size();
+                    int used = operatorRepository.countByStageIdAndApprovalStatusNotIn(stage.getId(), RELEASES_STAGE_SLOT);
                     boolean full = used >= stage.getCapacity();
                     String label = stage.getName() + " (" + used + " of " + stage.getCapacity() + " places used)"
                             + (full ? " (full)" : "");
