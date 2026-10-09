@@ -15,6 +15,8 @@ import rw.ac.auca.transitdues.duepayment.domain.DuePayment;
 import rw.ac.auca.transitdues.duepayment.domain.DuePaymentStatus;
 import rw.ac.auca.transitdues.duepayment.service.DuePaymentService;
 import rw.ac.auca.transitdues.exception.InvalidPaymentStateException;
+import rw.ac.auca.transitdues.exception.OperatorNotEligibleException;
+import rw.ac.auca.transitdues.operator.domain.ApprovalStatus;
 import rw.ac.auca.transitdues.operator.domain.Operator;
 import rw.ac.auca.transitdues.user.domain.UserAccount;
 import rw.ac.auca.transitdues.user.repository.UserAccountRepository;
@@ -37,7 +39,7 @@ public class PortalWebController {
     public String portal(Model model) {
         Operator operator = currentOperator();
         model.addAttribute("operator", operator);
-        if (operator != null) {
+        if (operator != null && operator.getApprovalStatus() == ApprovalStatus.ACTIVE) {
             model.addAttribute("dues", duePaymentService.findDuePaymentsByOperator(operator.getId()));
             model.addAttribute("recentPayments", paymentEventLogRepository
                     .findTop5ByOperatorIdAndStatusInOrderByOccurredAtDesc(operator.getId().toString(),
@@ -52,7 +54,7 @@ public class PortalWebController {
         try {
             duePaymentService.initiateOnlinePayment(id, operator);
             return "redirect:/portal/duepayments/" + id + "/pay/confirm";
-        } catch (InvalidPaymentStateException ex) {
+        } catch (InvalidPaymentStateException | OperatorNotEligibleException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
             return "redirect:/portal";
         }
@@ -85,7 +87,7 @@ public class PortalWebController {
                 redirectAttributes.addFlashAttribute("errorMessage",
                         "The payment could not be completed. Please try again.");
             }
-        } catch (InvalidPaymentStateException ex) {
+        } catch (InvalidPaymentStateException | OperatorNotEligibleException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
         return "redirect:/portal";
@@ -97,7 +99,7 @@ public class PortalWebController {
         try {
             duePaymentService.cancelOnlinePayment(id, operator);
             redirectAttributes.addFlashAttribute("successMessage", "Payment attempt cancelled.");
-        } catch (InvalidPaymentStateException ex) {
+        } catch (InvalidPaymentStateException | OperatorNotEligibleException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
         return "redirect:/portal";
@@ -110,7 +112,7 @@ public class PortalWebController {
             duePaymentService.requestCashPayment(id, operator);
             redirectAttributes.addFlashAttribute("successMessage",
                     "Cash payment requested. A finance officer will confirm it once received.");
-        } catch (InvalidPaymentStateException ex) {
+        } catch (InvalidPaymentStateException | OperatorNotEligibleException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
         return "redirect:/portal";

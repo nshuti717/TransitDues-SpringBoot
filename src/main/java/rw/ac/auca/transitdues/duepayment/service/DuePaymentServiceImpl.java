@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import rw.ac.auca.transitdues.audit.AuditLogService;
 import rw.ac.auca.transitdues.config.AuthenticatedUserResolver;
+import rw.ac.auca.transitdues.email.EmailEventPublisher;
 import rw.ac.auca.transitdues.duepayment.domain.DuePayment;
 import rw.ac.auca.transitdues.duepayment.domain.DuePaymentStatus;
 import rw.ac.auca.transitdues.duepayment.domain.PaymentMethod;
@@ -19,13 +20,16 @@ import rw.ac.auca.transitdues.duepayment.repository.DuePaymentRepository;
 import rw.ac.auca.transitdues.exception.DuePaymentNotFoundException;
 import rw.ac.auca.transitdues.exception.DuplicateDuePaymentException;
 import rw.ac.auca.transitdues.exception.InvalidPaymentStateException;
+import rw.ac.auca.transitdues.exception.OperatorNotEligibleException;
 import rw.ac.auca.transitdues.exception.OperatorNotFoundException;
 import rw.ac.auca.transitdues.exception.StageNotFoundException;
 import rw.ac.auca.transitdues.messaging.DuePaymentEvent;
 import rw.ac.auca.transitdues.messaging.DuePaymentEventPublisher;
+import rw.ac.auca.transitdues.operator.domain.ApprovalStatus;
 import rw.ac.auca.transitdues.operator.domain.Operator;
 import rw.ac.auca.transitdues.operator.repository.OperatorRepository;
 import rw.ac.auca.transitdues.stage.service.StageService;
+import rw.ac.auca.transitdues.user.repository.UserAccountRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -50,6 +54,8 @@ public class DuePaymentServiceImpl implements DuePaymentService {
     private final StageService stageService;
     private final AuditLogService auditLogService;
     private final DuePaymentEventPublisher duePaymentEventPublisher;
+    private final EmailEventPublisher emailEventPublisher;
+    private final UserAccountRepository userAccountRepository;
 
     /**
      * Simulated payment-gateway failure rate (0.0-1.0), since no real payment
@@ -65,6 +71,7 @@ public class DuePaymentServiceImpl implements DuePaymentService {
         UUID operatorId = duePayment.getOperator().getId();
         Operator operator = operatorRepository.findById(operatorId)
                 .orElseThrow(() -> new OperatorNotFoundException("Operator not found with id: " + operatorId));
+        requireEligibleForDues(operator);
 
         if (duePaymentRepository.existsByOperatorIdAndTypeAndDueDate(operatorId, duePayment.getType(),
                 duePayment.getDueDate())) {
@@ -83,6 +90,7 @@ public class DuePaymentServiceImpl implements DuePaymentService {
         auditLogService.record("DuePayment", savedDuePayment.getId().toString(), "CREATE",
                 describe(savedDuePayment));
         duePaymentEventPublisher.publish(toEvent(savedDuePayment, DuePaymentEvent.CREATED));
+        notifyDueIssued(savedDuePayment);
         return savedDuePayment;
     }
 
@@ -92,10 +100,10 @@ public class DuePaymentServiceImpl implements DuePaymentService {
     public BulkIssueResult bulkIssueDuePayments(PaymentType type, BigDecimal amount, LocalDate dueDate, UUID stageId) {
         List<Operator> operators;
         if (stageId == null) {
-            operators = operatorRepository.findAll();
+            operators = operatorRepository.findByApprovalStatus(ApprovalStatus.ACTIVE);
         } else {
             stageService.findStageById(stageId);
-            operators = operatorRepository.findByStageId(stageId);
+            operators = operatorRepository.findByStageIdAndApprovalStatus(stageId, ApprovalStatus.ACTIVE);
         }
 
         String issuedBy = currentIssuedBy();
@@ -120,6 +128,7 @@ public class DuePaymentServiceImpl implements DuePaymentService {
             auditLogService.record("DuePayment", savedDuePayment.getId().toString(), "CREATE",
                     describe(savedDuePayment));
             duePaymentEventPublisher.publish(toEvent(savedDuePayment, DuePaymentEvent.CREATED));
+            notifyDueIssued(savedDuePayment);
             issuedCount++;
         }
 
@@ -306,6 +315,22 @@ public class DuePaymentServiceImpl implements DuePaymentService {
         if (payingOperator == null || !duePayment.getOperator().getId().equals(payingOperator.getId())) {
             throw new AccessDeniedException(NOT_OWNER_MESSAGE);
         }
+        requireEligibleForDues(payingOperator);
+    }
+
+    /**
+     * A due can only be issued to, or acted on by, an ACTIVE operator. A
+     * pending-approval, rejected, suspended, or deactivated operator is
+     * refused even if the request is otherwise well-formed (e.g. a suspended
+     * operator POSTing directly to an endpoint whose button the portal no
+     * longer renders for them) - enforced here, not just by hiding UI.
+     */
+    private void requireEligibleForDues(Operator operator) {
+        if (operator.getApprovalStatus() != ApprovalStatus.ACTIVE) {
+            throw new OperatorNotEligibleException(
+                    "Operator '" + operator.getFullName() + "' is not ACTIVE (status: "
+                            + operator.getApprovalStatus() + ") and is not eligible for dues or payments.");
+        }
     }
 
     /**
@@ -326,6 +351,23 @@ public class DuePaymentServiceImpl implements DuePaymentService {
             }
             throw ex;
         }
+    }
+
+    /**
+     * Sends a due-issued email through the same real RabbitMQ-backed email
+     * pipeline OTP/password-reset emails already use (EmailEventPublisher -&gt;
+     * EmailSendConsumer -&gt; Mailpit/real SMTP) - a real send, not the
+     * [SIMULATED EMAIL] log line NotificationConsumer writes for the general
+     * payment-event audit trail. Silently does nothing if the operator has no
+     * linked login account to email.
+     */
+    private void notifyDueIssued(DuePayment duePayment) {
+        userAccountRepository.findByOperatorId(duePayment.getOperator().getId())
+                .ifPresent(account -> emailEventPublisher.publish(account.getEmail(),
+                        "A new due has been issued on TransitDues",
+                        "A " + duePayment.getType() + " due of RWF " + duePayment.getAmount()
+                                + " has been issued, due by " + duePayment.getDueDate()
+                                + ". Sign in to the operator portal to pay online or request a cash payment."));
     }
 
     private String describe(DuePayment duePayment) {

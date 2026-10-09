@@ -16,4 +16,7 @@ public interface UserAccountRepository extends JpaRepository<UserAccount, UUID> 
      * UserAccount itself.
      */
     Optional<UserAccount> findByOperatorPhoneNumber(String phoneNumber);
+
+    /** Used to disable the login linked to an operator being deactivated by an Admin. */
+    Optional<UserAccount> findByOperatorId(UUID operatorId);
 }

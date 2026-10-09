@@ -17,6 +17,7 @@ import rw.ac.auca.transitdues.duepayment.service.BulkIssueScope;
 import rw.ac.auca.transitdues.duepayment.service.DuePaymentService;
 import rw.ac.auca.transitdues.exception.DuplicateDuePaymentException;
 import rw.ac.auca.transitdues.exception.InvalidPaymentStateException;
+import rw.ac.auca.transitdues.exception.OperatorNotEligibleException;
 import rw.ac.auca.transitdues.exception.OperatorNotFoundException;
 import rw.ac.auca.transitdues.exception.StageNotFoundException;
 import rw.ac.auca.transitdues.operator.domain.Operator;
@@ -72,7 +73,7 @@ public class DuePaymentWebController {
     @GetMapping("/new")
     public String newDuePayment(Model model) {
         model.addAttribute("duepayment", new DuePayment());
-        model.addAttribute("operators", operatorService.findAllOperators());
+        model.addAttribute("operators", operatorService.findEligibleActiveOperators());
         return "duepayments/form";
     }
 
@@ -80,14 +81,14 @@ public class DuePaymentWebController {
     @PreAuthorize("hasRole('FINANCE_OFFICER')")
     public String createDuePayment(@Valid @ModelAttribute("duepayment") DuePayment duepayment, BindingResult bindingResult, Model model) {
         if (bindingResult.hasErrors()) {
-            model.addAttribute("operators", operatorService.findAllOperators());
+            model.addAttribute("operators", operatorService.findEligibleActiveOperators());
             return "duepayments/form";
         }
         try {
             duePaymentService.createDuePayment(duepayment);
-        } catch (OperatorNotFoundException | DuplicateDuePaymentException ex) {
+        } catch (OperatorNotFoundException | DuplicateDuePaymentException | OperatorNotEligibleException ex) {
             model.addAttribute("errorMessage", ex.getMessage());
-            model.addAttribute("operators", operatorService.findAllOperators());
+            model.addAttribute("operators", operatorService.findEligibleActiveOperators());
             return "duepayments/form";
         }
         return "redirect:/web/duepayments";

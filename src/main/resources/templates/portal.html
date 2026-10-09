@@ -33,7 +33,30 @@
             </p>
         </div>
 
-        <div th:if="${operator != null}" class="bg-surface-container-lowest rounded-lg border border-outline-variant/40 shadow-sm overflow-hidden">
+        <!-- Restricted status message: shown instead of dues/payments for any operator who is not ACTIVE. -->
+        <div th:if="${operator != null and operator.approvalStatus.name() != 'ACTIVE'}"
+             class="bg-surface-container-lowest rounded-lg border border-outline-variant/40 shadow-sm p-space-xl text-center">
+            <span class="material-symbols-outlined text-[36px] text-on-surface-variant mb-space-sm" data-icon="hourglass_top">hourglass_top</span>
+            <p class="text-body-md font-body-md text-on-surface font-medium"
+               th:if="${operator.approvalStatus.name() == 'PENDING_APPROVAL'}">
+                Your account is awaiting Finance/Admin approval and stage assignment.
+            </p>
+            <p class="text-body-md font-body-md text-on-surface font-medium"
+               th:if="${operator.approvalStatus.name() == 'REJECTED'}">
+                Your operator application was not approved. Contact a Finance Officer or Administrator for details.
+            </p>
+            <p class="text-body-md font-body-md text-on-surface font-medium"
+               th:if="${operator.approvalStatus.name() == 'SUSPENDED'}">
+                Your operator account has been suspended. You cannot receive or pay dues until it is reinstated.
+            </p>
+            <p class="text-label-sm font-label-sm text-on-surface-variant mt-space-sm">
+                Full Name: <span th:text="${operator.fullName}">Name</span> &middot;
+                Plate: <span th:text="${operator.plateNumber}">RAB 123A</span> &middot;
+                Requested Stage: <span th:text="${operator.stage.name}">Stage</span>
+            </p>
+        </div>
+
+        <div th:if="${operator != null and operator.approvalStatus.name() == 'ACTIVE'}" class="bg-surface-container-lowest rounded-lg border border-outline-variant/40 shadow-sm overflow-hidden">
             <div class="px-space-lg py-space-md border-b border-outline-variant/20 bg-surface-container-lowest">
                 <h2 class="text-headline-sm font-headline-sm text-on-surface font-semibold">Operator Profile</h2>
             </div>
@@ -58,7 +81,7 @@
         </div>
 
         <!-- My Dues -->
-        <section th:if="${operator != null}" class="bg-surface-container-lowest border border-outline-variant/30 rounded-lg shadow-sm overflow-hidden flex flex-col">
+        <section th:if="${operator != null and operator.approvalStatus.name() == 'ACTIVE'}" class="bg-surface-container-lowest border border-outline-variant/30 rounded-lg shadow-sm overflow-hidden flex flex-col">
             <div class="p-space-md border-b border-outline-variant/30 flex items-center gap-space-sm bg-surface-container-lowest">
                 <span class="text-label-md font-label-md font-semibold text-on-surface">My Dues</span>
                 <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-surface-container text-primary"
@@ -136,7 +159,7 @@
         </section>
 
         <!-- Recent Payments -->
-        <section th:if="${operator != null}" class="bg-surface-container-lowest border border-outline-variant/30 rounded-lg shadow-sm overflow-hidden flex flex-col">
+        <section th:if="${operator != null and operator.approvalStatus.name() == 'ACTIVE'}" class="bg-surface-container-lowest border border-outline-variant/30 rounded-lg shadow-sm overflow-hidden flex flex-col">
             <div class="p-space-md border-b border-outline-variant/30 bg-surface-container-lowest">
                 <span class="text-label-md font-label-md font-semibold text-on-surface">Recent Payments</span>
             </div>

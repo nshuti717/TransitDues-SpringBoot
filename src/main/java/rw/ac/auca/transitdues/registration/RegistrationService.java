@@ -8,6 +8,7 @@ import rw.ac.auca.transitdues.audit.AuditLogService;
 import rw.ac.auca.transitdues.exception.DuplicateEmailException;
 import rw.ac.auca.transitdues.exception.DuplicatePhoneException;
 import rw.ac.auca.transitdues.exception.InvalidRegistrationException;
+import rw.ac.auca.transitdues.operator.domain.ApprovalStatus;
 import rw.ac.auca.transitdues.operator.domain.Operator;
 import rw.ac.auca.transitdues.operator.service.OperatorService;
 import rw.ac.auca.transitdues.stage.domain.Stage;
@@ -70,6 +71,13 @@ public class RegistrationService {
         operator.setPhoneNumber(form.getPhoneNumber());
         operator.setPlateNumber(form.getPlateNumber());
         operator.setStage(stageRef);
+        // Self-registration always starts PENDING_APPROVAL - a Finance Officer or
+        // Admin must review and confirm a stage before this operator is ACTIVE and
+        // eligible for dues (see OperatorServiceImpl#approveOperator). Admin-created
+        // operators (createOperatorWithOptionalLogin, below) keep the entity's
+        // default of ACTIVE instead, since an Admin creating one directly is
+        // already the trusted action an approval would otherwise gate.
+        operator.setApprovalStatus(ApprovalStatus.PENDING_APPROVAL);
 
         // There is no authenticated principal during self-registration, so the
         // new account's own email is passed through as the audit performer.

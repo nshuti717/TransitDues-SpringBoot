@@ -59,6 +59,18 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(HttpStatus.CONFLICT, ex.getMessage(), request);
     }
 
+    @ExceptionHandler(OperatorNotEligibleException.class)
+    public ResponseEntity<ErrorResponse> handleOperatorNotEligibleException(OperatorNotEligibleException ex,
+                                                                               HttpServletRequest request) {
+        return buildErrorResponse(HttpStatus.CONFLICT, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(SelfActionNotAllowedException.class)
+    public ResponseEntity<ErrorResponse> handleSelfActionNotAllowedException(SelfActionNotAllowedException ex,
+                                                                                 HttpServletRequest request) {
+        return buildErrorResponse(HttpStatus.CONFLICT, ex.getMessage(), request);
+    }
+
     /**
      * Thrown by the framework itself when nothing maps the request (a typo'd
      * URL, a removed route). More specific than the Exception.class handler

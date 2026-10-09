@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:replace="~{fragments/layout :: layout(~{::#content}, 'operators', 'Pending Operator Approvals', 'Operators awaiting Finance/Admin review and stage confirmation.')}">
+    <div id="content">
+        <!-- Flash banners -->
+        <div class="mb-space-lg rounded-lg bg-tertiary-container/10 border border-tertiary/30 p-space-md text-body-sm font-body-sm text-on-surface-variant" th:if="${successMessage}" th:text="${successMessage}">Success.</div>
+        <div class="mb-space-lg rounded-lg bg-error-container/40 border border-error/30 p-space-md text-body-sm font-body-sm text-on-error-container" th:if="${errorMessage}" th:text="${errorMessage}">Error.</div>
+
+        <div class="flex items-center justify-between gap-space-md">
+            <div>
+                <h1 class="text-headline-xl font-headline-xl text-on-surface tracking-tight">Pending Operator Approvals</h1>
+                <p class="text-body-md font-body-md text-on-surface-variant mt-0.5">Review each self-registered operator and confirm a stage before they go ACTIVE.</p>
+            </div>
+            <a class="text-label-md font-label-md text-primary-container hover:underline flex items-center gap-1" href="/web/operators">
+                <span class="material-symbols-outlined text-[18px]" data-icon="arrow_back">arrow_back</span>
+                <span>All operators</span>
+            </a>
+        </div>
+
+        <section class="bg-surface-container-lowest rounded-lg border border-outline-variant/50 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[820px] text-left border-collapse">
+                    <thead>
+                    <tr class="bg-surface-container-low/70 border-b border-outline-variant/40 h-10">
+                        <th class="px-space-md py-2 text-label-xs font-label-xs text-outline uppercase tracking-wider" scope="col">Full Name</th>
+                        <th class="px-space-md py-2 text-label-xs font-label-xs text-outline uppercase tracking-wider" scope="col">Email</th>
+                        <th class="px-space-md py-2 text-label-xs font-label-xs text-outline uppercase tracking-wider" scope="col">Phone</th>
+                        <th class="px-space-md py-2 text-label-xs font-label-xs text-outline uppercase tracking-wider" scope="col">Plate</th>
+                        <th class="px-space-md py-2 text-label-xs font-label-xs text-outline uppercase tracking-wider" scope="col">Requested Stage</th>
+                        <th class="px-space-md py-2 text-label-xs font-label-xs text-outline uppercase tracking-wider" scope="col">Registered</th>
+                        <th class="px-space-md py-2 text-label-xs font-label-xs text-outline uppercase tracking-wider text-right" scope="col">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody class="divide-y divide-outline-variant/30 text-body-md font-body-md">
+                    <tr th:each="view : ${views}" class="h-[52px] hover:bg-surface-container-low/40 transition-colors">
+                        <td class="px-space-md py-3 font-label-md text-label-md text-on-surface" th:text="${view.operator.fullName}">Full Name</td>
+                        <td class="px-space-md py-3 text-on-surface-variant text-body-sm" th:text="${view.emailOrPlaceholder()}">email@example.com</td>
+                        <td class="px-space-md py-3 text-on-surface-variant font-mono text-body-sm" th:text="${view.operator.phoneNumber}">0700000000</td>
+                        <td class="px-space-md py-3 font-mono text-label-xs" th:text="${view.operator.plateNumber}">RAB 123A</td>
+                        <td class="px-space-md py-3 text-on-surface" th:text="${view.operator.stage.name}">Stage Name</td>
+                        <td class="px-space-md py-3 text-on-surface-variant text-body-sm" th:text="${#temporals.format(view.operator.createdAt, 'dd MMM yyyy')}">01 Jan 2026</td>
+                        <td class="px-space-md py-3 text-right">
+                            <a class="h-9 px-3 bg-primary-container hover:bg-primary text-on-primary rounded-lg text-label-sm font-label-sm font-medium inline-flex items-center gap-1 transition-colors active:scale-[0.99]"
+                               th:href="@{/web/operators/{id}/review(id=${view.operator.id})}">
+                                <span class="material-symbols-outlined text-[16px]" data-icon="fact_check">fact_check</span>
+                                <span>Review</span>
+                            </a>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(views)}">
+                        <td class="px-space-md py-6 text-center text-on-surface-variant" colspan="7">No pending approvals right now.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</div>
+</body>
+</html>

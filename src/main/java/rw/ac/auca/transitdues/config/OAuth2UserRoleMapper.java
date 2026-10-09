@@ -93,6 +93,13 @@ public class OAuth2UserRoleMapper implements GrantedAuthoritiesMapper {
                 throw new OAuth2AuthenticationException(
                         new OAuth2Error("account_not_verified"), "Account is pending email verification.");
             }
+            if (!account.isEnabled()) {
+                // Same rule CustomUserDetailsService enforces for form login: a disabled
+                // account (e.g. an Admin-deactivated operator) must not be able to sign in
+                // by any path, Google included.
+                throw new OAuth2AuthenticationException(
+                        new OAuth2Error("account_disabled"), "Account has been disabled.");
+            }
             account.getRoles().forEach(role -> mapped.add(new SimpleGrantedAuthority("ROLE_" + role.name())));
             return mapped;
         }
