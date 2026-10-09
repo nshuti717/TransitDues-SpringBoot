@@ -13,9 +13,13 @@ import rw.ac.auca.transitdues.duepayment.domain.DuePaymentStatus;
 import rw.ac.auca.transitdues.duepayment.domain.PaymentMethod;
 import rw.ac.auca.transitdues.duepayment.domain.PaymentType;
 import rw.ac.auca.transitdues.duepayment.repository.DuePaymentRepository;
+import rw.ac.auca.transitdues.email.EmailEventPublisher;
+import rw.ac.auca.transitdues.user.repository.UserAccountRepository;
 import rw.ac.auca.transitdues.exception.DuplicateDuePaymentException;
 import rw.ac.auca.transitdues.exception.InvalidPaymentStateException;
+import rw.ac.auca.transitdues.exception.OperatorNotEligibleException;
 import rw.ac.auca.transitdues.messaging.DuePaymentEventPublisher;
+import rw.ac.auca.transitdues.operator.domain.ApprovalStatus;
 import rw.ac.auca.transitdues.operator.domain.Operator;
 import rw.ac.auca.transitdues.operator.repository.OperatorRepository;
 import rw.ac.auca.transitdues.stage.domain.Stage;
@@ -57,6 +61,12 @@ class DuePaymentServiceImplTest {
     @Mock
     private DuePaymentEventPublisher duePaymentEventPublisher;
 
+    @Mock
+    private EmailEventPublisher emailEventPublisher;
+
+    @Mock
+    private UserAccountRepository userAccountRepository;
+
     @InjectMocks
     private DuePaymentServiceImpl duePaymentService;
 
@@ -84,6 +94,63 @@ class DuePaymentServiceImplTest {
     }
 
     @Test
+    void issuingADuePublishesAnEmailEventToTheOperatorsLinkedAccount() {
+        UUID operatorId = UUID.randomUUID();
+        Operator operator = operator(operatorId, "Jean Claude Ishimwe");
+
+        DuePayment newDue = new DuePayment();
+        newDue.setOperator(operator);
+        newDue.setType(PaymentType.DAILY);
+        newDue.setAmount(new BigDecimal("1000"));
+        newDue.setDueDate(LocalDate.of(2026, 3, 1));
+
+        rw.ac.auca.transitdues.user.domain.UserAccount account = new rw.ac.auca.transitdues.user.domain.UserAccount();
+        account.setEmail("operator@example.com");
+
+        when(operatorRepository.findById(operatorId)).thenReturn(Optional.of(operator));
+        when(duePaymentRepository.save(any(DuePayment.class))).thenAnswer(invocation -> {
+            DuePayment duePayment = invocation.getArgument(0);
+            duePayment.setId(UUID.randomUUID());
+            return duePayment;
+        });
+        when(userAccountRepository.findByOperatorId(operatorId)).thenReturn(Optional.of(account));
+
+        duePaymentService.createDuePayment(newDue);
+
+        verify(emailEventPublisher).publish(eq("operator@example.com"), anyString(), anyString());
+    }
+
+    @Test
+    void createDuePaymentRejectsAnOperatorThatIsNotActive() {
+        UUID operatorId = UUID.randomUUID();
+        Operator pendingOperator = operator(operatorId, "Pending Operator");
+        pendingOperator.setApprovalStatus(ApprovalStatus.PENDING_APPROVAL);
+
+        DuePayment newDue = new DuePayment();
+        newDue.setOperator(pendingOperator);
+        newDue.setType(PaymentType.DAILY);
+        newDue.setAmount(new BigDecimal("1000"));
+        newDue.setDueDate(LocalDate.of(2026, 3, 1));
+
+        when(operatorRepository.findById(operatorId)).thenReturn(Optional.of(pendingOperator));
+
+        assertThrows(OperatorNotEligibleException.class, () -> duePaymentService.createDuePayment(newDue));
+        verify(duePaymentRepository, never()).save(any(DuePayment.class));
+    }
+
+    @Test
+    void aSuspendedOperatorCannotPayAnAlreadyIssuedDue() {
+        Operator suspendedOperator = operator(UUID.randomUUID(), "Suspended Operator");
+        suspendedOperator.setApprovalStatus(ApprovalStatus.SUSPENDED);
+        DuePayment due = payableDue(suspendedOperator, DuePaymentStatus.PENDING);
+        when(duePaymentRepository.findById(due.getId())).thenReturn(Optional.of(due));
+
+        assertThrows(OperatorNotEligibleException.class,
+                () -> duePaymentService.initiateOnlinePayment(due.getId(), suspendedOperator));
+        verify(duePaymentRepository, never()).save(any(DuePayment.class));
+    }
+
+    @Test
     void bulkIssueSkipsExistingDuesAndCountsCorrectly() {
         UUID stageId = UUID.randomUUID();
         Stage stage = new Stage();
@@ -99,7 +166,7 @@ class DuePaymentServiceImplTest {
         BigDecimal amount = new BigDecimal("1000");
 
         when(stageService.findStageById(stageId)).thenReturn(stage);
-        when(operatorRepository.findByStageId(stageId))
+        when(operatorRepository.findByStageIdAndApprovalStatus(stageId, ApprovalStatus.ACTIVE))
                 .thenReturn(List.of(operatorOne, operatorTwo, operatorThree));
 
         when(duePaymentRepository.existsByOperatorIdAndTypeAndDueDate(operatorOne.getId(), PaymentType.DAILY, dueDate))

@@ -6,6 +6,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+import rw.ac.auca.transitdues.operator.domain.ApprovalStatus;
+import rw.ac.auca.transitdues.operator.repository.OperatorRepository;
 import rw.ac.auca.transitdues.otp.OtpPurpose;
 import rw.ac.auca.transitdues.otp.OtpService;
 import rw.ac.auca.transitdues.stage.domain.Stage;
@@ -52,6 +54,9 @@ class AccountVerificationFlowTest {
     private UserAccountRepository userAccountRepository;
 
     @Autowired
+    private OperatorRepository operatorRepository;
+
+    @Autowired
     private OtpService otpService;
 
     @Test
@@ -95,6 +100,10 @@ class AccountVerificationFlowTest {
 
         UserAccount verified = userAccountRepository.findByEmailIgnoreCase(email).orElseThrow();
         assertEquals(AccountStatus.ACTIVE, verified.getStatus());
+        // The account's email is verified, but the operator still needs a Finance/Admin
+        // approval and stage confirmation before it is ACTIVE and eligible for dues.
+        assertEquals(ApprovalStatus.PENDING_APPROVAL,
+                operatorRepository.findById(verified.getOperator().getId()).orElseThrow().getApprovalStatus());
     }
 
     @Test
