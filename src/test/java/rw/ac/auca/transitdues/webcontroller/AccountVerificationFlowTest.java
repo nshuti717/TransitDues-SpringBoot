@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 import rw.ac.auca.transitdues.otp.OtpPurpose;
 import rw.ac.auca.transitdues.otp.OtpService;
 import rw.ac.auca.transitdues.stage.domain.Stage;
@@ -16,6 +17,8 @@ import rw.ac.auca.transitdues.user.repository.UserAccountRepository;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -29,10 +32,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * verify with the real OTP (read back via OtpService, exactly as the emailed
  * code would be) -&gt; /portal now works, auto-logged-in. Runs against the real
  * local Postgres/Mongo/Redis/RabbitMQ containers, same as the rest of this
- * project's integration tests.
+ * project's integration tests. Class-level @Transactional rolls back every
+ * Stage/Operator/UserAccount row these tests write, so the real dev database
+ * (and the /register stage dropdown it feeds) isn't left with throwaway
+ * "Verify Flow Stage ..." rows after each run.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
 class AccountVerificationFlowTest {
 
     @Autowired
@@ -119,6 +126,26 @@ class AccountVerificationFlowTest {
                 .andExpect(redirectedUrl("/verify-account?email=" + email.replace("@", "%40")));
         // Flash error message content (cooldown seconds) is covered at the unit level
         // (OtpServiceTest/AccountVerificationServiceTest) where the clock isn't racing a real test run.
+    }
+
+    @Test
+    void stageDropdownOnlyListsKigaliStagesAndExcludesOtherCities() throws Exception {
+        Stage kigaliStage = newStage();
+        Stage otherCityStage = new Stage();
+        otherCityStage.setName("Huye Stage " + UUID.randomUUID());
+        otherCityStage.setLocation("Huye");
+        otherCityStage.setCapacity(10);
+        stageRepository.save(otherCityStage);
+
+        mockMvc.perform(get("/register"))
+                .andExpect(status().isOk())
+                .andExpect(result -> {
+                    @SuppressWarnings("unchecked")
+                    var stageOptions = (java.util.List<rw.ac.auca.transitdues.registration.StageOption>)
+                            result.getModelAndView().getModel().get("stageOptions");
+                    assertTrue(stageOptions.stream().anyMatch(option -> option.id().equals(kigaliStage.getId())));
+                    assertFalse(stageOptions.stream().anyMatch(option -> option.id().equals(otherCityStage.getId())));
+                });
     }
 
     @Test

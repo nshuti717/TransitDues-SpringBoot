@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 import rw.ac.auca.transitdues.otp.OtpPurpose;
 import rw.ac.auca.transitdues.otp.OtpService;
 import rw.ac.auca.transitdues.stage.domain.Stage;
@@ -24,10 +25,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * no longer completes authentication by itself - it redirects to
  * /verify-login, and only a correct OTP there actually creates a session.
  * Runs against the real local containers, same as the rest of this
- * project's integration tests.
+ * project's integration tests. Class-level @Transactional rolls back every
+ * Stage/Operator/UserAccount row these tests write, so the real dev database
+ * (and the /register stage dropdown it feeds) isn't left with throwaway
+ * "Login Flow Stage ..." rows after each run.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
 class LoginVerificationFlowTest {
 
     private static final String PASSWORD = "LoginFlow123";
