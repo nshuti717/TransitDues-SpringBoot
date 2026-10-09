@@ -89,9 +89,23 @@ audit record and a simulated notification.
 
 | Role | Granted to | Can access |
 |---|---|---|
-| `ADMIN` | the seeded `admin` user, or a Google login whose email is in `OAUTH_ADMIN_EMAILS` | Dashboard, Stages, Operators, Due Payments, Audit Log (full read/write on stages and operators) |
-| `FINANCE_OFFICER` | the seeded `finance` user, or a Google login whose email is in `OAUTH_FINANCE_EMAILS` | Dashboard, Stages, Operators (read-only), Due Payments (full read/write), Collections |
-| `OPERATOR` | self-registration at `/register` (email verification via OTP required before first sign-in - see below), admin creating an operator with a login, or a Google login matching neither list above (auto-provisioned, restricted, no verification needed since Google already verified the email) | `/portal` only |
+| `ADMIN` | the seeded `admin` user, or a Google login whose email is in `OAUTH_ADMIN_EMAILS` | Dashboard, Stages, Operators, Due Payments, Audit Log (full read/write on stages and operators); approve/reject/suspend an operator; the only role that can deactivate (soft-delete) one |
+| `FINANCE_OFFICER` | the seeded `finance` user, or a Google login whose email is in `OAUTH_FINANCE_EMAILS` | Dashboard, Stages, Operators (read-only), Due Payments (full read/write), Collections; approve/reject/suspend an operator |
+| `OPERATOR` | self-registration at `/register` (email verification via OTP required before first sign-in - see below), admin creating an operator with a login, or a Google login matching neither list above (auto-provisioned, restricted, no verification needed since Google already verified the email) | `/portal` only - and only sees/pays dues once a Finance Officer or Admin has approved them into a stage (see "Operator approval workflow" below) |
+
+### Operator approval workflow
+
+A self-registered operator does not start usable: after the registration OTP
+verifies their email, they are `PENDING_APPROVAL`, not `ACTIVE` - they can
+sign in, but `/portal` shows a status message instead of dues until a Finance
+Officer or Admin reviews them at `/web/operators/pending`, confirms a real
+Stage, and approves them. Rejecting or suspending an operator keeps them
+blocked from dues and payments. An Admin can also deactivate an operator
+(`/web/operators/{id}/delete-confirm`) - a soft delete that disables their
+login but keeps their operator row and all due/payment/audit history intact;
+Finance Officers and Operators cannot do this. See `docs/DOCUMENTATION.md`
+section 12a for the full state diagram and `spec.md`'s Session 11 entry for
+how this was implemented and tested.
 
 ### Configuring Google role emails
 

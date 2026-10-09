@@ -25,6 +25,7 @@ together as a whole" questions in one place.
 10. [Domain concepts: actors, processes, data objects](#10-domain-concepts-actors-processes-data-objects)
 11. [Data model and database schema](#11-data-model-and-database-schema)
 12. [Role-based access control](#12-role-based-access-control)
+    - 12a. [Operator approval workflow and deletion](#12a-operator-approval-workflow-and-deletion)
 13. [Authentication and OAuth2](#13-authentication-and-oauth2)
 14. [Messaging: RabbitMQ and the email flow](#14-messaging-rabbitmq-and-the-email-flow)
 15. [PostgreSQL and MongoDB usage](#15-postgresql-and-mongodb-usage)
@@ -99,6 +100,11 @@ responsive instead).
 | F9 | An operator who forgets their password can reset it via an emailed one-time code | `/forgot-password` |
 | F10 | Every state-changing action is recorded in an audit trail | `AuditLogService`, `/web/audit-log` |
 | F11 | A REST API exposes the same stage/operator/due-payment data, under the same role rules | `/api/**` |
+| F12 | A self-registered, email-verified operator is `PENDING_APPROVAL`, not `ACTIVE`, until a Finance Officer or Admin reviews and confirms a stage | `RegistrationService`, `/web/operators/pending` |
+| F13 | A `PENDING_APPROVAL`/`REJECTED`/`SUSPENDED` operator can still sign in but sees a restricted status message instead of dues/payments on `/portal` | `PortalWebController`, `portal.html` |
+| F14 | A Finance Officer or Admin can approve (confirming a stage), reject, or suspend an operator, with who/when/why recorded | `/web/operators/{id}/approve\|reject\|suspend` |
+| F15 | Only `ACTIVE`, stage-assigned operators are targeted by single or bulk due issuance | `DuePaymentServiceImpl` |
+| F16 | An Admin can deactivate an operator; this preserves all due/payment/audit history and disables (not deletes) its login | `/web/operators/{id}/delete-confirm`, `/{id}/delete` |
 
 ## 6. Non-functional requirements / quality attributes
 
@@ -124,7 +130,7 @@ These are written to be checkable, not just aspirational:
   operators are expected to use this on a phone.
 - **Auditability**: every create/update/delete of a Stage, Operator, UserAccount or
   DuePayment writes an entry to the MongoDB audit log with who, what, when.
-- **Testability**: the full test suite (104 tests as of this writing) runs against
+- **Testability**: the full test suite (125 tests as of this writing) runs against
   the real local Postgres/Mongo/Redis/RabbitMQ containers, not mocks of them - see
   [Testing plan](#17-testing-plan).
 
@@ -193,6 +199,48 @@ find what needs attention.**
   current data (not a stale cache).
 - Given I filter by operator name, stage, status or date range, then only
   matching dues are listed.
+
+**As a self-registered operator, I want to know my account is awaiting review,
+so I'm not confused about why I can't see any dues yet.**
+- Given I just verified my email, when I open `/portal`, then I see "Your
+  account is awaiting Finance/Admin approval and stage assignment" instead of
+  a dues table - I am signed in, just restricted.
+- Given I am still `PENDING_APPROVAL`, when I (or anyone) attempts to pay or
+  issue a due for me directly (not through any button my portal shows), then
+  the server refuses it - the restriction is enforced in the service layer,
+  not only by which buttons the page renders.
+
+**As a Finance Officer or Admin, I want to review a pending operator's details
+and confirm their stage before approving them, so no one starts ACTIVE
+without a human check.**
+- Given an operator is `PENDING_APPROVAL`, when I open `/web/operators/pending`,
+  then I see their name, email, phone, plate, requested stage, and
+  registration date.
+- Given I approve them with a selected stage, then they become `ACTIVE`,
+  assigned to exactly that stage, and the action records who approved them,
+  when, and my optional note.
+- Given the stage I select is already at capacity, then the approval is
+  refused with the same `StageCapacityExceededException` message used
+  elsewhere - I cannot over-fill a stage via approval either.
+- Given I reject or suspend an operator instead, then they stay blocked from
+  dues and payments - confirmed by trying to pay or receive a due as that
+  operator afterward.
+- Given I am signed in as an OPERATOR, when I attempt to approve/reject/
+  suspend anyone, then I am refused (403).
+
+**As an Admin, I want to remove an operator who has left, without destroying
+their financial or audit history.**
+- Given an operator has due/payment history, when I deactivate them, then
+  their operator row, every due, payment, and audit entry is unchanged -
+  only their status becomes `DEACTIVATED` and their login (if any) is
+  disabled.
+- Given I am a FINANCE_OFFICER or OPERATOR, when I attempt to deactivate an
+  operator, then I am refused (403) - only ADMIN can.
+- Given the operator is now deactivated, when they try to log in with their
+  correct password, then they are refused, the same way a disabled account
+  always has been.
+- Given the operator I am about to deactivate is linked to my own Admin
+  account, then the action is refused instead of locking myself out.
 
 **As a user who forgot their password, I want to reset it by email, without
 revealing whether an email is registered.**
@@ -307,6 +355,10 @@ erDiagram
         string phoneNumber
         string plateNumber UK
         uuid stage_id FK
+        string approvalStatus "PENDING_APPROVAL / ACTIVE / REJECTED / SUSPENDED / DEACTIVATED"
+        string approvalActionBy "nullable"
+        datetime approvalActionAt "nullable"
+        string approvalReason "nullable"
     }
     USER_ACCOUNT {
         uuid id PK
@@ -352,7 +404,7 @@ erDiagram
 | Table | Constraint / index | Why |
 |---|---|---|
 | `stage` | unique `name` | two stages can't share a name |
-| `operator` | unique `plate_number`; index on `stage_id` | plate numbers are a real-world unique identifier; stage_id is the most common lookup |
+| `operator` | unique `plate_number`; index on `stage_id`, `approval_status` | plate numbers are a real-world unique identifier; stage_id and approval_status are the most common lookups (dues eligibility, pending queue) |
 | `user_account` | unique `email`; unique `operator_id` | one login per email; an Operator has at most one linked account |
 | `due_payment` | unique (`operator_id`, `type`, `due_date`); index on each of `operator_id`, `status`, `due_date` | the core "no duplicate due" rule, backed by a DB constraint as the race-condition backstop; the three indexes back the list/filter/overdue-job queries |
 | `otp_verification` | index on (`email`, `purpose`, `consumed`) | the exact lookup `OtpService` does on every generate/verify |
@@ -374,15 +426,59 @@ OAuth2](#13-authentication-and-oauth2)). Every other account-creation path
 (seeded ADMIN/FINANCE_OFFICER, an admin creating an operator login, Google
 auto-provisioning) defaults to `ACTIVE` and is unaffected by this gate.
 
+Also orthogonal to role, but scoped to the `Operator` entity rather than the
+login account, is `ApprovalStatus` (`PENDING_APPROVAL`/`ACTIVE`/`REJECTED`/
+`SUSPENDED`/`DEACTIVATED`) - see [Operator approval workflow](#12a-operator-approval-workflow-and-deletion)
+below. Unlike `AccountStatus`, this does **not** block sign-in: a
+`PENDING_APPROVAL`/`REJECTED`/`SUSPENDED` operator can still authenticate (if
+their email is verified) but `/portal` shows a restricted message instead of
+dues. Only `DEACTIVATED` also disables the login account outright.
+
 | Area | ADMIN | FINANCE_OFFICER | OPERATOR |
 |---|---|---|---|
 | Dashboard, Stages, Operators | read/write | read/write (Operators read-only) | - |
+| Approve / reject / suspend an operator | yes | yes | - |
+| Deactivate (soft-delete) an operator | yes | - | - |
 | Due Payments (view) | yes | yes | own only, via `/portal` |
 | Due Payments (issue / bulk issue / edit) | - | yes | - |
-| Pay own due (online / request cash) | - | - | yes |
+| Pay own due (online / request cash) | - | - | yes, only while `ACTIVE` |
 | Confirm / reject cash payment | - | yes | - |
 | Collections dashboard (`/web/finance`) | read | read/write | - |
 | Audit log | yes | - | - |
+
+### 12a. Operator approval workflow and deletion
+
+```
+Self-register -> OTP verify email -> PENDING_APPROVAL
+                                          |
+                     Finance/Admin reviews, confirms a Stage
+                                          |
+                    approve -----------------------> ACTIVE -> eligible for dues
+                    reject  -> REJECTED  (blocked from dues/payments, can still log in)
+                    suspend -> SUSPENDED (blocked from dues/payments, can still log in)
+
+ACTIVE (or any status) -> Admin "Deactivate" -> DEACTIVATED
+    - operator row, due_payment rows, audit log: all unchanged
+    - linked UserAccount.enabled = false (cannot log in by any path, incl. Google)
+```
+
+Only `ACTIVE` operators are targeted by single or bulk due issuance
+(`DuePaymentServiceImpl`), and only `ACTIVE` operators can initiate, confirm,
+or cancel a payment, or request cash - checked in the service layer on every
+call, not only by which buttons a given page renders for a given status.
+Approving an operator requires confirming a real, capacity-available `Stage`
+by id; rejecting/suspending/deactivating accepts an optional free-text reason,
+and every one of the four actions records who performed it and when on the
+`Operator` row itself (`approvalActionBy`/`approvalActionAt`/`approvalReason`).
+
+Deactivation is a soft delete by design, not a product shortcut: `due_payment.
+operator_id` and `user_account.operator_id` are foreign keys to `operator`
+with no cascade, so PostgreSQL itself refuses a hard `DELETE FROM operator`
+for any operator with real history. The web UI's "Deactivate" action never
+attempts a hard delete; a literal hard-delete REST endpoint
+(`DELETE /api/operators/{id}`) still exists for API completeness, locked to
+`ADMIN`, and only ever succeeds for an operator with zero due/payment/account
+history.
 
 Enforced at two levels: a URL-pattern rule in `SecurityConfig` (coarse: which
 roles can reach `/web/duepayments/**` at all) and `@PreAuthorize` on individual
@@ -523,6 +619,17 @@ generate-then-publish shape, with subject `"Verify your TransitDues account"` an
 routing key was needed; both land on the same `email.*` -> `transitdues.email.queue`
 -> `EmailSendConsumer` pipeline.
 
+Three more notifications added for the operator approval workflow reuse this
+exact same real-email path (`EmailEventPublisher.publish(...)` directly, not
+the `duepayment.*` simulated-notification path above): `OperatorServiceImpl`
+emails the operator's linked account on approval ("...was approved") and
+rejection ("...was not approved"), and `DuePaymentServiceImpl` emails it when
+a due is issued ("A new due has been issued on TransitDues") - both single
+and bulk issuance. Each is a no-op if the operator has no linked login
+account to email. Verified by temporarily pointing a running instance's
+`MAIL_HOST` at Mailpit (not `.env`) and confirming all three arrived with the
+correct recipient and content - see spec.md Session 11.
+
 ## 15. PostgreSQL and MongoDB usage
 
 - **PostgreSQL** holds every record that has referential integrity requirements
@@ -582,15 +689,21 @@ since they are testing a single class's decisions, not integration.
 | Service unit tests | `DuePaymentServiceImplTest`, `CollectionsServiceTest`, `OtpServiceTest`, `PasswordResetServiceTest`, `AccountVerificationServiceTest`, `LoginVerificationServiceTest`, `UserAccountServiceTest`, `OperatorServiceImplTest`, `RegistrationServiceTest` | business rules in isolation: duplicate-due rejection, payment state transitions and ownership checks, OTP expiry/attempts/single-use/resend-cooldown, no-enumeration behavior across all three OTP flows, single-role enforcement, plate normalization |
 | Security/RBAC (controller) tests | `DuePaymentWebControllerSecurityTest`, `PortalWebControllerSecurityTest`, `FinanceWebControllerSecurityTest`, `AccessDeniedPageTest` | a role that should be refused a route actually gets a 403, not just a hidden button |
 | Validation/behavioral controller tests | `PasswordResetWebControllerTest`, `AuthWebControllerTest` | public reachability, an unknown-email reset request behaving identically to a known one, the Google button actually being absent (not just hidden by CSS) when unconfigured |
-| Full-stack flow tests | `AccountVerificationFlowTest`, `LoginVerificationFlowTest` | register -> blocked from login/`/portal` while pending -> verify -> `/portal`, auto-logged-in; correct password -> blocked from a session until the login OTP is confirmed -> role-based redirect; wrong password still fails immediately with no OTP sent; a code from one purpose rejected for another - all against the real database |
+| Full-stack flow tests | `AccountVerificationFlowTest`, `LoginVerificationFlowTest`, `OperatorApprovalWorkflowTest`, `OperatorDeletionTest` | register -> blocked from login/`/portal` while pending -> verify -> `/portal`, auto-logged-in; correct password -> blocked from a session until the login OTP is confirmed -> role-based redirect; wrong password still fails immediately with no OTP sent; a code from one purpose rejected for another; verified-but-unapproved operator sees the restricted portal message; Finance approval confirms a stage and activates; OPERATOR role refused approval; a rejected operator stays blocked and bulk-issue skips a still-pending operator; Admin deactivation preserves due history and disables login; FINANCE_OFFICER/OPERATOR refused deactivation - all against the real database |
 | Infrastructure/startup tests | `OverdueDuePaymentJobTest`, `LegacyDuePaymentMigrationRunnerTest`, `RoleConflictRepairRunnerTest`, `OAuth2UserRoleMapperTest` (incl. the `PENDING_VERIFICATION` Google-login refusal), `CustomUserDetailsServiceTest` | scheduled/startup jobs and authentication wiring behave correctly in isolation |
 | Application context test | `TransitDuesSpringBootApplicationTests` | the whole application wires up and starts |
 
 Running it: start the containers (`docker compose up -d`), then `mvn test`. As of
-this session, **all 104 tests pass**. This was run and verified, not assumed - the
+this session, **all 125 tests pass** - up from 104 before this session's
+additions: 10 new full-stack tests (`OperatorApprovalWorkflowTest`,
+`OperatorDeletionTest`), 10 new unit tests across `OperatorServiceImplTest`/
+`DuePaymentServiceImplTest` (approve/reject/suspend/deactivate, eligibility
+checks, the due-issuance email event), and one extended assertion on the
+existing registration flow test. This was run and verified, not assumed - the
 exact command and output are part of this session's transcript, not claimed
 without having actually executed it. Real bugs were caught and fixed while
-writing these tests, not just features exercised successfully on the first try:
+writing these tests, not just features
+exercised successfully on the first try:
 `forgotPasswordRejectsAMalformedEmail` found a Thymeleaf page evaluating
 `!submitted` before the controller ever set it on a validation-failure path
 (`PasswordResetWebController`); `AccountVerificationFlowTest` found a stale
@@ -713,6 +826,25 @@ configuration, not in a file that ships with the code at all.
   button-hiding behavior and the `OAuth2UserRoleMapper` fixes are covered by
   (passing) automated tests and code review, not an actual completed Google
   sign-in against a real Google Cloud OAuth client.
+- **No reactivation UI for a `REJECTED`/`SUSPENDED` operator.** Re-running
+  "Approve" on one does work (the code only refuses a `DEACTIVATED` operator),
+  but the pending-approvals queue and review page are written around the
+  pending-first-approval case; there is no dedicated "reactivate" button or
+  confirmation copy for the reject->active or suspend->active path.
+- **A legacy hard-delete REST endpoint still exists** (`DELETE
+  /api/operators/{id}`), now locked to `ADMIN` but otherwise unchanged from
+  earlier sessions - it performs a real row delete and is refused by the
+  database for any operator with due/payment/account history. The web UI's
+  "Deactivate" action is the recommended, always-safe path; this endpoint is
+  kept only for REST API completeness and has no test coverage of its own.
+- **No UI to browse deactivated operators.** Once deactivated, an operator
+  drops out of `/web/operators`'s list entirely; recovering one's details
+  today means querying the database directly (its row, and every due/payment/
+  audit entry referencing it, are still there) rather than through a page.
+- **No waitlist for a full stage.** If every slot at a stage is held by
+  `PENDING_APPROVAL` operators, self-registration closes for that stage even
+  though some of them may later be rejected (which would free a slot) - there
+  is no queueing behavior beyond the existing capacity check.
 
 ## 20. Responsive design evidence
 

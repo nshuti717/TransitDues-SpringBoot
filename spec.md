@@ -536,6 +536,140 @@ made the button hide itself when unconfigured.
   against Mailpit and the automated test suite. See
   `docs/DOCUMENTATION.md`'s "Known limitations."
 
+### Session 11: Operator approval workflow and safe Admin deletion
+Three things, each its own commit: a root-cause fix/regression test for the
+`/register` stage dropdown, a full self-registration -> approval -> ACTIVE
+workflow, and an Admin-only, history-preserving operator deactivation.
+
+- **Stage dropdown root cause**: the dropdown logic itself
+  (`RegisterWebController.buildStageOptions`) was already correct - it only
+  ever queries `Stage` entities (filtered to `location LIKE '%Kigali%'`) and
+  renders `StageOption(id, label, full)` records, never an `Operator`,
+  `UserAccount`, or payment. The actual bug was test-data pollution: two
+  `@SpringBootTest` classes (`AccountVerificationFlowTest`,
+  `LoginVerificationFlowTest`) created throwaway `Stage` rows directly against
+  the real local dev Postgres database without rolling them back, so junk rows
+  like "Verify Flow Stage ..." accumulated next to the real Kigali stages and
+  showed up in the dropdown as confusing, unrelated-looking entries. A prior
+  commit on this branch added class-level `@Transactional` to both tests,
+  which stops any *future* pollution; this session verified the live dev
+  database directly (`psql`) and confirmed it is already clean (only Kacyiru,
+  Kimironko, Nyabugogo, Remera). Added a stage-capacity exclusion fix (below)
+  and a dedicated regression test is already present
+  (`stageDropdownOnlyListsKigaliStagesAndExcludesOtherCities`).
+- **`ApprovalStatus`** (`PENDING_APPROVAL`, `ACTIVE`, `REJECTED`, `SUSPENDED`,
+  `DEACTIVATED`) - new field on `Operator`, not `UserAccount`: dues are issued
+  against `Operator` rows directly, and an `Operator` can exist with no login
+  at all (admin-created with no email), so the eligibility flag has to live on
+  the entity dues actually reference. Defaults to `ACTIVE` in Java, so every
+  existing operator and every admin-created one (`OperatorWebController` ->
+  `createOperatorWithOptionalLogin`) is unaffected; `RegistrationService`
+  explicitly overrides this to `PENDING_APPROVAL` only on the self-registration
+  path. Not `nullable=false` at the JPA level, same reasoning as
+  `AccountStatus`/`DuePayment.dueDate` in earlier sessions -
+  `OperatorApprovalBackfillRunner` backfills any pre-existing NULL rows to
+  `ACTIVE` at startup. Deliberately does **not** reuse/extend `AccountStatus`:
+  that field stays scoped to "has this email been OTP-verified," so none of
+  the existing login/OTP code paths (`CustomUserDetailsService`,
+  `OtpGatedAuthenticationProvider`, password reset) needed to change at all. A
+  `PENDING_APPROVAL`/`REJECTED`/`SUSPENDED` operator can still authenticate
+  (its `UserAccount.status` is `ACTIVE` once email-verified) - `/portal` is
+  what gates it, by checking `operator.getApprovalStatus()` and rendering a
+  restricted message instead of the dues table.
+- **Approval actions** (`OperatorServiceImpl.approveOperator/rejectOperator/
+  suspendOperator`) record who acted, when, and an optional reason on three
+  new `Operator` columns (`approvalActionBy/At/Reason` - one "last action"
+  triple, not a separate history table, consistent with how `DuePayment`
+  already tracks `issuedBy`/`confirmedBy`). Approving requires confirming a
+  real `Stage` by id (re-validated: must exist, must have capacity if it
+  differs from the operator's current stage) - this is what "an approver must
+  explicitly select/confirm a stage" means in code. New routes under
+  `/web/operators` (`/pending` queue, `/{id}/review`, `/{id}/approve`,
+  `/{id}/reject`, `/{id}/suspend`), all `@PreAuthorize("hasAnyRole('ADMIN',
+  'FINANCE_OFFICER')")` - enforced on the server regardless of which buttons a
+  given role's rendered page happens to show.
+- **Dues/payment eligibility enforced at the service layer, not just the UI**:
+  `DuePaymentServiceImpl.createDuePayment`/`bulkIssueDuePayments` now only
+  ever target `ACTIVE` operators (`bulkIssueDuePayments` queries
+  `findByApprovalStatus(ACTIVE)`/`findByStageIdAndApprovalStatus(stageId,
+  ACTIVE)` directly, rather than filtering after the fact); every payment
+  mutation an operator can trigger (`initiateOnlinePayment`,
+  `confirmOnlinePayment`, `cancelOnlinePayment`, `requestCashPayment`) now
+  also checks `approvalStatus == ACTIVE` inside `requireOwnedBy` - so a
+  suspended operator POSTing directly to `/portal/duepayments/{id}/pay` (the
+  button for which `portal.html` no longer renders for them) is still refused
+  by `OperatorNotEligibleException`, not just hidden from.
+- **Stage capacity counting** (`OperatorServiceImpl.createOperator`,
+  `RegisterWebController.buildStageOptions`) now excludes `REJECTED`/
+  `DEACTIVATED` operators from a stage's occupied-slot count (new
+  `OperatorRepository.countByStageIdAndApprovalStatusNotIn`) - a rejected or
+  deactivated operator frees the stage slot they held; every other status
+  (`PENDING_APPROVAL`, `ACTIVE`, `SUSPENDED`) still occupies it.
+- **Admin-only operator deactivation is a soft delete, deliberately never a
+  hard one** (`OperatorServiceImpl.deactivateOperator`,
+  `OperatorWebController` `/{id}/delete-confirm` + `/{id}/delete`): flips
+  `approvalStatus` to `DEACTIVATED` and disables the linked `UserAccount` (if
+  any) via the exact same `enabled` flag `CustomUserDetailsService` already
+  checks - no new login-blocking mechanism was needed. The operator row and
+  every `due_payment`/`audit_log`/Mongo event row referencing it are left
+  completely untouched. This was also the only safe choice given the existing
+  schema: `due_payment.operator_id` and `user_account.operator_id` are foreign
+  keys to `operator` with no `ON DELETE CASCADE`, so Postgres itself refuses a
+  hard delete of any operator with history - a true `DELETE FROM operator`
+  (still reachable, deliberately, only via the pre-existing `DELETE
+  /api/operators/{id}` REST endpoint, now locked to `hasRole('ADMIN')`) only
+  ever succeeds for an operator with zero history, and is not what the web
+  UI's "Deactivate" button does. Deactivation refuses to proceed
+  (`SelfActionNotAllowedException`) if the target operator is linked to the
+  acting Admin's own account. `OAuth2UserRoleMapper` was also hardened to
+  check `account.isEnabled()` (it previously only checked
+  `AccountStatus.PENDING_VERIFICATION`), so a deactivated account cannot
+  bypass the block via Google login either.
+- Full suite: 125 tests, all passing, run against the real local containers
+  (`./mvnw -o test`; actually executed and the output inspected for this
+  session's commit, not carried over from an earlier estimate).
+  New coverage: `OperatorApprovalWorkflowTest` (6 tests: pending-after-verify,
+  restricted portal message, Finance approval with stage confirmation,
+  OPERATOR role refused approval, rejection blocks the portal message,
+  bulk-issue skips a pending operator at the target stage) and
+  `OperatorDeletionTest` (4 tests: Admin deactivates and due history survives,
+  FINANCE_OFFICER refused, OPERATOR refused, deactivated account cannot log
+  in), plus new unit tests in `OperatorServiceImplTest`/
+  `DuePaymentServiceImplTest` for approve/reject/suspend/deactivate and
+  eligibility checks.
+- **Existing registrations/operators are unaffected**: every operator and
+  account created before this session already defaults to `ACTIVE` (Java field
+  default + the backfill runner), so nobody already active was retroactively
+  put into a pending-approval queue.
+- **Approval/rejection/due-issuance emails verified, not just assumed**: these
+  three new email sends go through the exact same `EmailEventPublisher` ->
+  RabbitMQ -> `EmailSendConsumer` -> `JavaMailSender` pipeline OTP emails
+  already use. The automated test suite's short-lived JVM sometimes exits
+  before the async RabbitMQ listener drains every queued message (a test-
+  process-lifecycle artifact, not a bug - the messages are still durably
+  queued), so delivery was separately verified by running the packaged app as
+  a real, longer-lived process with `MAIL_HOST`/`MAIL_PORT` temporarily
+  overridden on that one process's environment (not `.env`) to point at the
+  local Mailpit container instead of real Gmail, then confirming via Mailpit's
+  API that an "...operator application was approved", "...was not approved",
+  and "A new due has been issued on TransitDues" email each arrived with the
+  correct recipient, subject and body. `.env` itself (real Gmail config) was
+  never touched, and the verification process was stopped immediately after.
+- **Addendum (this session)**: the previous session's chat ended with this work
+  already drafted but not finished - `OperatorService` had no
+  `deactivateOperator` method yet, `OperatorWebController`'s delete endpoint
+  still called the old hard-delete `deleteOperator`, and `delete-confirm.html`
+  had no route serving it, even though the docs above already described the
+  intended end state. This session finished that wiring exactly as documented
+  (`deactivateOperator(id, reason, requesterIdentifier)`, the
+  `/{id}/delete-confirm` GET route, the self-deletion guard, the list page's
+  delete icon linking to that confirm page instead of a bare JS `confirm()`),
+  then ran `./mvnw -o test` against the real containers and observed **125
+  tests, all passing** - this is what the "Full suite" bullet above now
+  reflects. The Mailpit email-delivery verification described in the previous
+  bullet was not re-run this session; it is carried over as that session's
+  claim, not re-verified here.
+
 ## Running it / testing it
 
 See `README.md` for Docker setup and `.env` layout (that part has not changed).
