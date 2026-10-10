@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Add New Stage - TransitDues Cooperative Ledger</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Inter Google Font -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS v3 with Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-tint": "#1555d1",
+            "on-primary": "#ffffff",
+            "on-error": "#ffffff",
+            "primary-fixed": "#dbe1ff",
+            "tertiary": "#00655b",
+            "on-tertiary-fixed-variant": "#005048",
+            "on-surface": "#131c2a",
+            "on-tertiary-container": "#ddfff8",
+            "on-tertiary-fixed": "#00201c",
+            "tertiary-fixed": "#8cf5e4",
+            "secondary-fixed": "#d9e2ff",
+            "surface-container-highest": "#dae3f7",
+            "on-background": "#131c2a",
+            "surface-container-lowest": "#ffffff",
+            "primary-fixed-dim": "#b3c5ff",
+            "outline-variant": "#c3c6d6",
+            "inverse-surface": "#283140",
+            "inverse-primary": "#b3c5ff",
+            "surface-container": "#e7eeff",
+            "tertiary-fixed-dim": "#6fd8c8",
+            "secondary": "#535e7b",
+            "on-secondary-fixed-variant": "#3b4662",
+            "inverse-on-surface": "#ebf1ff",
+            "tertiary-container": "#008074",
+            "on-primary-fixed": "#00174a",
+            "primary": "#0650cc",
+            "on-secondary-container": "#56607d",
+            "secondary-container": "#d1dcfe",
+            "surface-variant": "#dae3f7",
+            "on-primary-fixed-variant": "#003ea6",
+            "on-secondary-fixed": "#0f1b34",
+            "error": "#ba1a1a",
+            "on-primary-container": "#f9f7ff",
+            "surface-bright": "#f9f9ff",
+            "surface-dim": "#d1daee",
+            "on-error-container": "#93000a",
+            "surface-container-low": "#f0f3ff",
+            "primary-container": "#356ae6",
+            "background": "#f9f9ff",
+            "on-tertiary": "#ffffff",
+            "outline": "#737685",
+            "on-surface-variant": "#434654",
+            "error-container": "#ffdad6",
+            "secondary-fixed-dim": "#bbc6e7",
+            "surface-container-high": "#dfe8fc",
+            "surface": "#f9f9ff",
+            "on-secondary": "#ffffff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xs": "0.25rem",
+            "space-lg": "1.5rem",
+            "space-sm": "0.5rem",
+            "space-xl": "2rem",
+            "margin": "2rem",
+            "gutter": "1.5rem",
+            "space-md": "1rem"
+          },
+          "fontFamily": {
+            "headline-xl": ["Inter"],
+            "headline-md": ["Inter"],
+            "headline-lg": ["Inter"],
+            "label-md": ["Inter"],
+            "label-xs": ["Inter"],
+            "label-sm": ["Inter"],
+            "headline-sm": ["Inter"],
+            "body-lg": ["Inter"],
+            "body-sm": ["Inter"],
+            "body-md": ["Inter"]
+          },
+          "fontSize": {
+            "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "500" }],
+            "label-xs": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600" }],
+            "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+            "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "600" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }]
+          }
+        },
+      },
+    }
+  </script>
+</head>
+<body class="bg-[#F7F8FA] text-on-surface antialiased font-body-md text-body-md min-h-screen flex">
+<!-- Fixed Primary Navigation Rail (Shared Component: SideNavBar) -->
+<aside class="fixed top-0 left-0 h-screen w-64 z-40 bg-[#1F2A44] border-r border-outline-variant/20 shadow-sm flex flex-col justify-between p-space-md">
+<!-- Brand / Monogram Header -->
+<div>
+<div class="flex items-center gap-space-sm px-space-md py-space-sm mb-space-lg">
+<div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center text-on-primary font-headline-sm font-bold shadow-sm">
+          TD
+        </div>
+<div class="flex flex-col">
+<span class="text-headline-sm font-headline-sm font-bold text-inverse-on-surface leading-tight">TransitDues</span>
+<span class="text-label-xs font-label-xs text-inverse-on-surface/70 tracking-wider uppercase">Cooperative Ledger</span>
+</div>
+</div>
+<!-- Navigation Tabs -->
+<nav class="space-y-1">
+<!-- Dashboard Tab -->
+<a class="text-inverse-on-surface/70 hover:text-inverse-on-surface hover:bg-surface-variant/10 rounded-lg font-label-md text-label-md px-space-md py-space-sm flex items-center gap-space-sm transition-colors active:scale-[0.99]" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="dashboard">dashboard</span>
+<span>Dashboard</span>
+</a>
+<!-- Stages Tab (ACTIVE - Matches Current View Intent) -->
+<a class="bg-primary-container text-on-primary rounded-lg font-label-md text-label-md px-space-md py-space-sm flex items-center gap-space-sm shadow-sm active:scale-[0.99] transition-transform" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="location_on" data-weight="fill" style="font-variation-settings: 'FILL' 1;">location_on</span>
+<span>Stages</span>
+</a>
+<!-- Operators Tab -->
+<a class="text-inverse-on-surface/70 hover:text-inverse-on-surface hover:bg-surface-variant/10 rounded-lg font-label-md text-label-md px-space-md py-space-sm flex items-center gap-space-sm transition-colors active:scale-[0.99]" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="two_wheeler">two_wheeler</span>
+<span>Operators</span>
+</a>
+<!-- Due Payments Tab -->
+<a class="text-inverse-on-surface/70 hover:text-inverse-on-surface hover:bg-surface-variant/10 rounded-lg font-label-md text-label-md px-space-md py-space-sm flex items-center gap-space-sm transition-colors active:scale-[0.99]" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="receipt_long">receipt_long</span>
+<span>Due Payments</span>
+</a>
+</nav>
+</div>
+<!-- Footer Action -->
+<div class="pt-4 border-t border-inverse-surface/30">
+<a class="text-inverse-on-surface/70 hover:text-inverse-on-surface hover:bg-surface-variant/10 rounded-lg font-label-md text-label-md px-space-md py-space-sm flex items-center gap-space-sm transition-colors active:scale-[0.99]" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="logout">logout</span>
+<span>Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Wrapper (Shifted for 260px / 64-rail desktop space) -->
+<div class="flex-1 ml-64 flex flex-col min-h-screen">
+<!-- TopNavBar (Shared Component) -->
+<header class="sticky top-0 right-0 z-30 h-16 bg-surface-container-lowest border-b border-[#E5E7EB] shadow-sm flex justify-between items-center px-space-xl">
+<div class="flex items-center gap-2">
+<span class="text-headline-sm font-headline-sm text-on-surface">Admin Co-op Kigali</span>
+<span class="px-2 py-0.5 rounded-full text-label-xs font-label-xs bg-primary/10 text-primary uppercase font-semibold">Treasury Station</span>
+</div>
+<div class="flex items-center gap-4">
+<!-- Notification Action -->
+<button class="w-10 h-10 flex items-center justify-center rounded-lg text-secondary hover:bg-surface-container transition-colors relative" title="Notifications">
+<span class="material-symbols-outlined text-[22px]" data-icon="notifications">notifications</span>
+<span class="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-error ring-2 ring-surface-container-lowest"></span>
+</button>
+<div class="h-6 w-px bg-outline-variant/30"></div>
+<!-- Profile Cluster -->
+<div class="flex items-center gap-3 pl-1">
+<div class="w-8 h-8 rounded-full bg-[#1F2A44] text-white flex items-center justify-center font-label-md font-semibold text-xs ring-1 ring-outline-variant/40">
+            AK
+          </div>
+<div class="flex flex-col text-left">
+<span class="text-label-md font-label-md text-on-surface font-semibold leading-tight">Admin Co-op Kigali</span>
+<span class="text-label-xs font-label-xs text-on-surface-variant">Kigali Sector Admin</span>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Operational Canvas -->
+<main class="flex-1 p-margin max-w-7xl w-full mx-auto">
+<!-- Breadcrumb Trail -->
+<nav aria-label="Breadcrumb" class="flex items-center gap-2 text-label-md font-label-md text-secondary mb-space-md">
+<a class="text-[#356AE6] hover:underline font-medium flex items-center gap-1" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="arrow_back">arrow_back</span>
+<span>Stages</span>
+</a>
+<span class="text-secondary/50">/</span>
+<span class="text-on-surface font-medium">Add New Stage</span>
+</nav>
+<!-- View Header Title & Subtitle -->
+<div class="mb-space-lg">
+<h1 class="text-headline-lg font-headline-lg text-on-surface">Add New Stage</h1>
+<p class="text-body-md font-body-md text-secondary mt-1">Register a new moto-taxi stage and allocate operator parking limit.</p>
+</div>
+<!-- Bento-Structure Master Form Area -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-start">
+<!-- Left: Primary Form Card (8 cols) -->
+<div class="lg:col-span-8 bg-surface-container-lowest border border-[#E5E7EB] rounded-lg p-8 shadow-sm">
+<form class="space-y-6" onsubmit="event.preventDefault();">
+<!-- Stage Name Field (Error State) -->
+<div>
+<label class="block text-label-md font-label-md text-on-surface mb-2 font-medium" for="stage-name">
+                Stage Name <span class="text-error font-semibold">*</span>
+</label>
+<div class="relative">
+<input aria-describedby="stage-name-error" aria-invalid="true" class="w-full h-10 px-3 bg-surface-container-lowest border border-error rounded-lg text-on-surface focus:outline-none focus:ring-2 focus:ring-error/20 focus:border-error transition-all" id="stage-name" placeholder="e.g. Remera Central Park" type="text" value=""/>
+<span class="material-symbols-outlined absolute right-3 top-2.5 text-error text-[20px]" data-icon="error">error</span>
+</div>
+<div class="flex items-center gap-1.5 mt-1.5 text-error text-label-sm font-label-sm" id="stage-name-error">
+<span class="material-symbols-outlined text-[15px]" data-icon="warning">warning</span>
+<span>Stage name is required.</span>
+</div>
+</div>
+<!-- Location Field -->
+<div>
+<label class="block text-label-md font-label-md text-on-surface mb-2 font-medium" for="stage-location">
+                Location <span class="text-error font-semibold">*</span>
+</label>
+<div class="relative">
+<input aria-describedby="stage-location-helper" class="w-full h-10 px-3 bg-surface-container-lowest border border-[#E5E7EB] rounded-lg text-on-surface placeholder:text-outline-variant focus:outline-none focus:border-primary-container focus:ring-2 focus:ring-primary-container/20 transition-all" id="stage-location" placeholder="e.g. Gasabo, Kigali (Near Amahoro Stadium)" type="text"/>
+<span class="material-symbols-outlined absolute right-3 top-2.5 text-outline text-[20px]" data-icon="pin_drop">pin_drop</span>
+</div>
+<p class="text-label-xs font-label-xs text-secondary mt-1.5" id="stage-location-helper">
+                Enter sector and district in Rwanda.
+              </p>
+</div>
+<!-- Capacity Field (Error State) -->
+<div>
+<label class="block text-label-md font-label-md text-on-surface mb-2 font-medium" for="stage-capacity">
+                Capacity <span class="text-error font-semibold">*</span>
+</label>
+<div class="relative">
+<input aria-describedby="stage-capacity-error" aria-invalid="true" class="w-full h-10 px-3 bg-surface-container-lowest border border-error rounded-lg text-on-surface focus:outline-none focus:ring-2 focus:ring-error/20 focus:border-error transition-all" id="stage-capacity" type="number" value="0"/>
+<span class="material-symbols-outlined absolute right-3 top-2.5 text-error text-[20px]" data-icon="error">error</span>
+</div>
+<div class="flex items-center gap-1.5 mt-1.5 text-error text-label-sm font-label-sm" id="stage-capacity-error">
+<span class="material-symbols-outlined text-[15px]" data-icon="warning">warning</span>
+<span>Capacity must be greater than zero.</span>
+</div>
+</div>
+<!-- Stage Supervisor Selection (Civic Operational Value Add) -->
+<div class="pt-2">
+<label class="block text-label-md font-label-md text-on-surface mb-2 font-medium" for="stage-supervisor">
+                Assigned Head Marshall (Optional)
+              </label>
+<select class="w-full h-10 px-3 bg-surface-container-lowest border border-[#E5E7EB] rounded-lg text-on-surface focus:outline-none focus:border-primary-container focus:ring-2 focus:ring-primary-container/20 transition-all font-body-md text-body-md" id="stage-supervisor">
+<option value="">Select verified station marshal...</option>
+<option value="1">Jean-Paul Habimana (ID: MSH-KG-04)</option>
+<option value="2">Emmanuel Ndungutse (ID: MSH-KG-11)</option>
+<option value="3">Claude Mutabazi (ID: MSH-KG-29)</option>
+</select>
+</div>
+<!-- Information Notice Box -->
+<div class="bg-blue-50 border border-blue-200 p-4 rounded-lg flex items-start gap-3">
+<span class="material-symbols-outlined text-primary-container text-[20px] mt-0.5 flex-shrink-0" data-icon="info">info</span>
+<p class="text-label-md font-label-md text-blue-900 leading-relaxed">
+<strong class="font-semibold">Note:</strong> A stage name must be unique. Capacity determines the maximum number of operators allowed at this stage.
+              </p>
+</div>
+<!-- Form Action Footer -->
+<div class="pt-4 border-t border-[#E5E7EB] flex items-center justify-end gap-3">
+<button class="px-5 py-2.5 rounded-lg border border-[#E5E7EB] bg-surface-container-lowest text-secondary font-label-md text-label-md hover:bg-[#F7F8FA] hover:border-outline-variant hover:text-on-surface transition-all active:scale-[0.99]" type="button">
+                Cancel
+              </button>
+<button class="px-6 py-2.5 rounded-lg bg-primary-container text-on-primary font-label-md text-label-md font-medium shadow-sm hover:bg-primary transition-all active:scale-[0.99] flex items-center gap-2" type="submit">
+<span class="material-symbols-outlined text-[18px]" data-icon="save">save</span>
+<span>Save Stage</span>
+</button>
+</div>
+</form>
+</div>
+<!-- Right: Operational Guidelines & Kigali Zone Context (4 cols) -->
+<div class="lg:col-span-4 space-y-4">
+<!-- Quick Checklist Widget -->
+<div class="bg-surface-container-lowest border border-[#E5E7EB] rounded-lg p-5 shadow-sm">
+<div class="flex items-center gap-2 mb-3 text-on-surface">
+<span class="material-symbols-outlined text-primary" data-icon="checklist">checklist</span>
+<h3 class="text-headline-sm font-headline-sm font-semibold">Stage Verification Rules</h3>
+</div>
+<ul class="space-y-3 text-body-sm font-body-sm text-secondary">
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-tertiary-container text-sm mt-0.5" data-icon="check_circle">check_circle</span>
+<span>Ensure clear road right-of-way approved by the Kigali City Infrastructure Board.</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-tertiary-container text-sm mt-0.5" data-icon="check_circle">check_circle</span>
+<span>Assigned capacity must match marked physical motorcycle bays (minimum 1.2m per unit).</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-tertiary-container text-sm mt-0.5" data-icon="check_circle">check_circle</span>
+<span>Automatic daily dues billing begins 24 hours post-registration for all affiliated moto-taxis.</span>
+</li>
+</ul>
+</div>
+<!-- Active Zone Audit Micro-Card -->
+<div class="bg-surface-container-lowest border border-[#E5E7EB] rounded-lg p-5 shadow-sm">
+<span class="text-label-xs font-label-xs uppercase font-semibold text-secondary tracking-wider">Operational Summary</span>
+<div class="mt-3 grid grid-cols-2 gap-3 pt-2 border-t border-[#E5E7EB]">
+<div>
+<p class="text-headline-md font-headline-md font-bold text-on-surface">42</p>
+<p class="text-label-xs font-label-xs text-secondary mt-0.5">Active Stages in Gasabo</p>
+</div>
+<div>
+<p class="text-headline-md font-headline-md font-bold text-primary">1,840</p>
+<p class="text-label-xs font-label-xs text-secondary mt-0.5">Park Capacity In Use</p>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-[#E5E7EB] flex items-center justify-between text-label-xs font-label-xs text-secondary">
+<span>Station Quota Threshold</span>
+<span class="text-tertiary font-semibold">91.4% Allocated</span>
+</div>
+<!-- Progress Bar -->
+<div class="w-full bg-[#E5E7EB] h-1.5 rounded-full mt-1.5 overflow-hidden">
+<div class="bg-primary-container h-full rounded-full" style="width: 91.4%"></div>
+</div>
+</div>
+<!-- Help Support Link -->
+<div class="bg-surface-container-low rounded-lg p-4 flex items-center justify-between border border-secondary-container/50">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary" data-icon="support_agent">support_agent</span>
+<span class="text-label-sm font-label-sm font-medium text-on-surface">Need municipal zoning help?</span>
+</div>
+<a class="text-primary hover:underline text-label-sm font-label-sm font-medium" href="#">Contact Marshall</a>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

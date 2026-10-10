@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<div th:replace="~{fragments/layout :: layout(~{::#content}, 'operators', 'Review Operator', 'Operator profile, approval status, and review actions.')}">
+    <div id="content">
+        <!-- Flash banners -->
+        <div class="mb-space-lg rounded-lg bg-tertiary-container/10 border border-tertiary/30 p-space-md text-body-sm font-body-sm text-on-surface-variant" th:if="${successMessage}" th:text="${successMessage}">Success.</div>
+        <div class="mb-space-lg rounded-lg bg-error-container/40 border border-error/30 p-space-md text-body-sm font-body-sm text-on-error-container" th:if="${errorMessage}" th:text="${errorMessage}">Error.</div>
+
+        <nav aria-label="Breadcrumb" class="flex items-center gap-2 text-label-md font-label-md text-secondary mb-space-md">
+            <a class="text-primary-container hover:underline font-medium flex items-center gap-1" href="/web/operators">
+                <span class="material-symbols-outlined text-sm" data-icon="arrow_back">arrow_back</span>
+                <span>Operators</span>
+            </a>
+            <span class="text-secondary/50">/</span>
+            <span class="text-on-surface font-medium">Review</span>
+        </nav>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-space-lg">
+            <!-- Profile -->
+            <section class="lg:col-span-2 bg-surface-container-lowest rounded-lg border border-outline-variant/40 shadow-sm overflow-hidden">
+                <div class="px-space-lg py-space-md border-b border-outline-variant/20 flex items-center justify-between">
+                    <h2 class="text-headline-sm font-headline-sm text-on-surface font-semibold" th:text="${view.operator.fullName}">Operator Name</h2>
+                    <span class="inline-flex items-center rounded-full px-2.5 py-1 text-label-sm font-label-sm font-medium"
+                          th:classappend="${view.operator.approvalStatus.name() == 'ACTIVE'} ? 'bg-[#2A9D8F]/15 text-[#2A9D8F]' :
+                                          (${view.operator.approvalStatus.name() == 'PENDING_APPROVAL'} ? 'bg-[#E9A23B]/20 text-[#B8771B]' :
+                                          (${view.operator.approvalStatus.name() == 'SUSPENDED'} ? 'bg-secondary-container text-secondary' : 'bg-error-container text-error'))"
+                          th:text="${view.operator.approvalStatus}">PENDING_APPROVAL</span>
+                </div>
+                <dl class="divide-y divide-outline-variant/20">
+                    <div class="px-space-lg py-space-md flex items-center justify-between gap-space-md">
+                        <dt class="text-label-sm font-label-sm text-on-surface-variant">Email</dt>
+                        <dd class="text-body-md font-body-md text-on-surface font-medium" th:text="${view.emailOrPlaceholder()}">email@example.com</dd>
+                    </div>
+                    <div class="px-space-lg py-space-md flex items-center justify-between gap-space-md">
+                        <dt class="text-label-sm font-label-sm text-on-surface-variant">Phone</dt>
+                        <dd class="text-body-md font-body-md text-on-surface font-medium font-mono" th:text="${view.operator.phoneNumber}">0700000000</dd>
+                    </div>
+                    <div class="px-space-lg py-space-md flex items-center justify-between gap-space-md">
+                        <dt class="text-label-sm font-label-sm text-on-surface-variant">Plate Number</dt>
+                        <dd class="text-body-md font-body-md text-on-surface font-medium font-mono" th:text="${view.operator.plateNumber}">RAB 123A</dd>
+                    </div>
+                    <div class="px-space-lg py-space-md flex items-center justify-between gap-space-md">
+                        <dt class="text-label-sm font-label-sm text-on-surface-variant">Requested / Current Stage</dt>
+                        <dd class="text-body-md font-body-md text-on-surface font-medium" th:text="${view.operator.stage.name}">Stage Name</dd>
+                    </div>
+                    <div class="px-space-lg py-space-md flex items-center justify-between gap-space-md">
+                        <dt class="text-label-sm font-label-sm text-on-surface-variant">Registration Date</dt>
+                        <dd class="text-body-md font-body-md text-on-surface font-medium" th:text="${#temporals.format(view.operator.createdAt, 'dd MMM yyyy HH:mm')}">01 Jan 2026</dd>
+                    </div>
+                    <div class="px-space-lg py-space-md flex items-center justify-between gap-space-md" th:if="${view.operator.approvalActionBy != null}">
+                        <dt class="text-label-sm font-label-sm text-on-surface-variant">Last Action</dt>
+                        <dd class="text-body-sm font-body-sm text-on-surface-variant text-right">
+                            <span th:text="${view.operator.approvalActionBy}">reviewer@example.com</span> on
+                            <span th:text="${#temporals.format(view.operator.approvalActionAt, 'dd MMM yyyy HH:mm')}">01 Jan 2026</span>
+                            <br/>
+                            <span th:if="${view.operator.approvalReason != null and !view.operator.approvalReason.isBlank()}" th:text="'Reason: ' + ${view.operator.approvalReason}">Reason: ...</span>
+                        </dd>
+                    </div>
+                </dl>
+            </section>
+
+            <!-- Actions -->
+            <section class="bg-surface-container-lowest rounded-lg border border-outline-variant/40 shadow-sm p-space-lg space-y-space-lg" sec:authorize="hasAnyRole('ADMIN', 'FINANCE_OFFICER')">
+                <div>
+                    <h3 class="text-label-md font-label-md text-on-surface font-semibold mb-space-sm">Approve</h3>
+                    <form th:action="@{/web/operators/{id}/approve(id=${view.operator.id})}" method="post" class="space-y-space-sm">
+                        <label class="block text-label-xs font-label-xs text-on-surface-variant" for="approveStageId">Confirm stage</label>
+                        <select class="w-full h-10 px-space-sm rounded-lg border border-outline-variant/60 bg-surface-container-lowest text-on-surface text-body-sm" id="approveStageId" name="stageId" required="required">
+                            <option th:each="s : ${stages}" th:selected="${s.id == view.operator.stage.id}" th:text="${s.name} + ' (Capacity: ' + ${s.capacity} + ')'" th:value="${s.id}">Stage</option>
+                        </select>
+                        <input class="w-full h-10 px-space-sm rounded-lg border border-outline-variant/60 bg-surface-container-lowest text-on-surface text-body-sm" name="reason" placeholder="Optional note" type="text"/>
+                        <button class="w-full h-10 bg-primary-container hover:bg-primary text-on-primary rounded-lg text-label-sm font-label-sm font-medium transition-colors active:scale-[0.99]" type="submit">
+                            Approve &amp; Activate
+                        </button>
+                    </form>
+                </div>
+
+                <div class="pt-space-md border-t border-outline-variant/20">
+                    <h3 class="text-label-md font-label-md text-on-surface font-semibold mb-space-sm">Reject</h3>
+                    <form th:action="@{/web/operators/{id}/reject(id=${view.operator.id})}" method="post" class="space-y-space-sm"
+                          onsubmit="return confirm('Reject this operator? They will not receive dues.');">
+                        <input class="w-full h-10 px-space-sm rounded-lg border border-outline-variant/60 bg-surface-container-lowest text-on-surface text-body-sm" name="reason" placeholder="Reason (recommended)" type="text"/>
+                        <button class="w-full h-10 border border-error/40 text-error hover:bg-error-container/20 rounded-lg text-label-sm font-label-sm font-medium transition-colors active:scale-[0.99]" type="submit">
+                            Reject
+                        </button>
+                    </form>
+                </div>
+
+                <div class="pt-space-md border-t border-outline-variant/20" th:if="${view.operator.approvalStatus.name() == 'ACTIVE'}">
+                    <h3 class="text-label-md font-label-md text-on-surface font-semibold mb-space-sm">Suspend</h3>
+                    <form th:action="@{/web/operators/{id}/suspend(id=${view.operator.id})}" method="post" class="space-y-space-sm"
+                          onsubmit="return confirm('Suspend this operator? They will be blocked from dues and payments.');">
+                        <input class="w-full h-10 px-space-sm rounded-lg border border-outline-variant/60 bg-surface-container-lowest text-on-surface text-body-sm" name="reason" placeholder="Reason (recommended)" type="text"/>
+                        <button class="w-full h-10 border border-outline-variant/40 text-on-surface hover:bg-surface-container-low rounded-lg text-label-sm font-label-sm font-medium transition-colors active:scale-[0.99]" type="submit">
+                            Suspend
+                        </button>
+                    </form>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Due Payments Management - TransitDues</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-tint": "#1555d1",
+            "on-primary": "#ffffff",
+            "on-error": "#ffffff",
+            "primary-fixed": "#dbe1ff",
+            "tertiary": "#00655b",
+            "on-tertiary-fixed-variant": "#005048",
+            "on-surface": "#131c2a",
+            "on-tertiary-container": "#ddfff8",
+            "on-tertiary-fixed": "#00201c",
+            "tertiary-fixed": "#8cf5e4",
+            "secondary-fixed": "#d9e2ff",
+            "surface-container-highest": "#dae3f7",
+            "on-background": "#131c2a",
+            "surface-container-lowest": "#ffffff",
+            "primary-fixed-dim": "#b3c5ff",
+            "outline-variant": "#c3c6d6",
+            "inverse-surface": "#283140",
+            "inverse-primary": "#b3c5ff",
+            "surface-container": "#e7eeff",
+            "tertiary-fixed-dim": "#6fd8c8",
+            "secondary": "#535e7b",
+            "on-secondary-fixed-variant": "#3b4662",
+            "inverse-on-surface": "#ebf1ff",
+            "tertiary-container": "#008074",
+            "on-primary-fixed": "#00174a",
+            "primary": "#0650cc",
+            "on-secondary-container": "#56607d",
+            "secondary-container": "#d1dcfe",
+            "surface-variant": "#dae3f7",
+            "on-primary-fixed-variant": "#003ea6",
+            "on-secondary-fixed": "#0f1b34",
+            "error": "#ba1a1a",
+            "on-primary-container": "#f9f7ff",
+            "surface-bright": "#f9f9ff",
+            "surface-dim": "#d1daee",
+            "on-error-container": "#93000a",
+            "surface-container-low": "#f0f3ff",
+            "primary-container": "#356ae6",
+            "background": "#f9f9ff",
+            "on-tertiary": "#ffffff",
+            "outline": "#737685",
+            "on-surface-variant": "#434654",
+            "error-container": "#ffdad6",
+            "secondary-fixed-dim": "#bbc6e7",
+            "surface-container-high": "#dfe8fc",
+            "surface": "#f9f9ff",
+            "on-secondary": "#ffffff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xs": "0.25rem",
+            "space-lg": "1.5rem",
+            "space-sm": "0.5rem",
+            "space-xl": "2rem",
+            "margin": "2rem",
+            "gutter": "1.5rem",
+            "space-md": "1rem"
+          },
+          "fontFamily": {
+            "headline-xl": ["Inter"],
+            "headline-md": ["Inter"],
+            "headline-lg": ["Inter"],
+            "label-md": ["Inter"],
+            "label-xs": ["Inter"],
+            "label-sm": ["Inter"],
+            "headline-sm": ["Inter"],
+            "body-lg": ["Inter"],
+            "body-sm": ["Inter"],
+            "body-md": ["Inter"]
+          },
+          "fontSize": {
+            "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "500" }],
+            "label-xs": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600" }],
+            "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+            "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "600" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }]
+          }
+        },
+      },
+    }
+  </script>
+</head>
+<body class="bg-background text-on-surface antialiased min-h-screen flex selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- Side Navigation Rail from Shared JSON -->
+<aside class="fixed top-0 left-0 h-screen w-64 z-40 bg-inverse-surface border-r border-outline-variant/20 shadow-sm flex flex-col justify-between p-space-md">
+<!-- Rail Header -->
+<div class="flex flex-col gap-space-lg">
+<div class="flex items-center gap-3 px-space-xs pt-space-xs">
+<div class="w-10 h-10 rounded-lg bg-primary-container text-on-primary flex items-center justify-center font-headline-md text-headline-md font-bold shadow-sm">
+          TD
+        </div>
+<div class="flex flex-col">
+<span class="text-headline-sm font-headline-sm font-bold text-inverse-on-surface tracking-tight">TransitDues</span>
+<span class="text-body-sm font-body-sm text-inverse-on-surface/70">Cooperative Ledger</span>
+</div>
+</div>
+<!-- Navigation Links -->
+<nav aria-label="Main Navigation" class="flex flex-col gap-1.5">
+<!-- Item 1: Dashboard -->
+<a class="text-inverse-on-surface/70 hover:text-inverse-on-surface hover:bg-surface-variant/10 rounded-lg font-label-md text-label-md px-space-md py-space-sm flex items-center gap-space-sm transition-colors active:scale-[0.99]" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="dashboard">dashboard</span>
+<span>Dashboard</span>
+</a>
+<!-- Item 2: Stages -->
+<a class="text-inverse-on-surface/70 hover:text-inverse-on-surface hover:bg-surface-variant/10 rounded-lg font-label-md text-label-md px-space-md py-space-sm flex items-center gap-space-sm transition-colors active:scale-[0.99]" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="location_on">location_on</span>
+<span>Stages</span>
+</a>
+<!-- Item 3: Operators -->
+<a class="text-inverse-on-surface/70 hover:text-inverse-on-surface hover:bg-surface-variant/10 rounded-lg font-label-md text-label-md px-space-md py-space-sm flex items-center gap-space-sm transition-colors active:scale-[0.99]" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="two_wheeler">two_wheeler</span>
+<span>Operators</span>
+</a>
+<!-- Item 4: Due Payments (ACTIVE per Intent and Context Hierarchy) -->
+<a class="bg-primary text-on-primary rounded-lg font-label-md text-label-md font-medium px-space-md py-space-sm flex items-center gap-space-sm active:scale-[0.99] shadow-sm" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="receipt_long">receipt_long</span>
+<span>Due Payments</span>
+</a>
+</nav>
+</div>
+<!-- Rail Footer -->
+<div class="pt-space-md border-t border-outline-variant/10 flex flex-col gap-2">
+<div class="px-space-md py-2 bg-surface-variant/5 rounded-lg border border-outline-variant/10 mb-1">
+<span class="text-label-xs font-label-xs text-inverse-on-surface/60 block uppercase tracking-wider">Treasury Hub</span>
+<span class="text-body-sm font-body-sm text-inverse-on-surface font-medium">District Station 04</span>
+</div>
+<a class="text-inverse-on-surface/70 hover:text-inverse-on-surface hover:bg-surface-variant/10 rounded-lg font-label-md text-label-md px-space-md py-space-sm flex items-center gap-space-sm transition-colors active:scale-[0.99]" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="logout">logout</span>
+<span>Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main View Area (ml-64 per Shared Component TopNavBar Spec) -->
+<div class="flex-1 flex flex-col ml-64 min-w-0">
+<!-- TopNavBar from Shared JSON -->
+<header class="sticky top-0 right-0 z-30 h-16 bg-surface-container-lowest border-b border-outline-variant/30 shadow-sm flex justify-between items-center px-space-xl">
+<div class="flex items-center gap-3">
+<span class="text-headline-sm font-headline-sm font-semibold text-on-surface">Admin Co-op Kigali</span>
+<span class="h-4 w-[1px] bg-outline-variant/50"></span>
+<span class="text-body-sm font-body-sm text-on-surface-variant">Due Payments Management</span>
+</div>
+<div class="flex items-center gap-4">
+<button aria-label="Notifications" class="w-10 h-10 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" type="button">
+<span class="material-symbols-outlined text-[22px]" data-icon="notifications">notifications</span>
+</button>
+<div class="flex items-center gap-3 pl-2 border-l border-outline-variant/30">
+<img class="w-9 h-9 rounded-full object-cover border border-outline-variant/30" data-alt="A professional headshot of a municipal cooperative administrator wearing formal business attire in a modern, brightly lit Kigali municipal transit treasury office. The background is a clean interior with corporate blue tones and architectural glass elements." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDo5Br_WHC9_rrBHK60s6ijoz4BQY9tF0c9mQ5PRSrTpAG9Slyi9LSLpGvHhlTnJtmiidbWuUUaV8VOjjXPQpp62VOma_znjFm_zvoELh808Um5NisgUEUhqKvu9hxCeH06c5bxw9iSI7_PFp6zvNu82LCYC2w3i89HHwIpHtKWOMqKk8KUOU0CYu3CZvyUGCKTUrRSxkoNzVp8zpazmYlX_Ve_ICm5nWJaCwQuWYg12iXoD3MOP1zy"/>
+<div class="hidden sm:flex flex-col text-left">
+<span class="text-label-md font-label-md text-on-surface leading-tight font-medium">Kigali Supervisor</span>
+<span class="text-label-xs font-label-xs text-on-surface-variant">Treasury Auditor</span>
+</div>
+</div>
+</div>
+</header>
+<!-- Operational Ledger Workspace Canvas -->
+<main class="flex-1 p-space-xl max-w-7xl w-full mx-auto flex flex-col gap-space-lg">
+<!-- Breadcrumb Hierarchy -->
+<nav aria-label="Breadcrumb" class="flex items-center gap-2 text-label-sm font-label-sm text-outline">
+<a class="hover:text-on-surface transition-colors" href="#">Cooperative Ledger</a>
+<span>/</span>
+<a class="hover:text-on-surface transition-colors" href="#">Revenue Ops</a>
+<span>/</span>
+<span class="text-on-surface font-medium font-label-md text-label-md">Due Payments Management</span>
+</nav>
+<!-- Ledger Summary Metric Bento Band -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter">
+<div class="bg-surface-container-lowest border border-outline-variant/30 rounded-lg p-space-md shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between text-outline">
+<span class="text-label-xs font-label-xs uppercase tracking-wider">Today's Collections</span>
+<span class="material-symbols-outlined text-tertiary" data-icon="payments">payments</span>
+</div>
+<div class="mt-2">
+<div class="text-headline-md font-headline-md font-bold text-on-surface">RWF 482,000</div>
+<div class="text-label-xs font-label-xs text-tertiary mt-1 flex items-center gap-1">
+<span class="font-semibold">+14.2%</span> vs yesterday quota
+            </div>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant/30 rounded-lg p-space-md shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between text-outline">
+<span class="text-label-xs font-label-xs uppercase tracking-wider">Pending Dues Queue</span>
+<span class="material-symbols-outlined text-secondary" data-icon="pending_actions">pending_actions</span>
+</div>
+<div class="mt-2">
+<div class="text-headline-md font-headline-md font-bold text-on-surface">RWF 34,000</div>
+<div class="text-label-xs font-label-xs text-on-surface-variant mt-1 flex items-center gap-1">
+<span class="font-semibold">28 entries</span> requiring reconciler check
+            </div>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant/30 rounded-lg p-space-md shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between text-outline">
+<span class="text-label-xs font-label-xs uppercase tracking-wider">Quarterly Compliance</span>
+<span class="material-symbols-outlined text-primary" data-icon="verified">verified</span>
+</div>
+<div class="mt-2">
+<div class="text-headline-md font-headline-md font-bold text-on-surface">94.8%</div>
+<div class="text-label-xs font-label-xs text-primary mt-1 flex items-center gap-1">
+              Active moto-taxi registry
+            </div>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant/30 rounded-lg p-space-md shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between text-outline">
+<span class="text-label-xs font-label-xs uppercase tracking-wider">Audit Sequence</span>
+<span class="material-symbols-outlined text-outline" data-icon="lock_reset">lock_reset</span>
+</div>
+<div class="mt-2">
+<div class="text-headline-md font-headline-md font-bold text-on-surface">Batch #104-B</div>
+<div class="text-label-xs font-label-xs text-on-surface-variant mt-1 flex items-center gap-1">
+              Settled 08:30 UTC
+            </div>
+</div>
+</div>
+</div>
+<!-- Header Section: Title & Actions -->
+<section class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md pt-2">
+<div>
+<h1 class="text-headline-lg font-headline-lg text-on-surface">Due Payments Management</h1>
+<p class="text-body-sm font-body-sm text-on-surface-variant mt-0.5">Record and monitor dues paid by moto-taxi operators.</p>
+</div>
+<!-- Primary Action Trigger -->
+<div class="flex items-center gap-3">
+<button class="inline-flex items-center gap-2 bg-surface-container-lowest border border-outline-variant/40 hover:bg-surface-container-low text-on-surface text-label-md font-label-md px-4 py-2.5 rounded-lg shadow-sm transition-colors active:scale-[0.99]" type="button">
+<span class="material-symbols-outlined text-[18px]" data-icon="file_download">file_download</span>
+<span>Export CSV</span>
+</button>
+<button class="inline-flex items-center gap-2 bg-primary-container hover:bg-primary text-on-primary text-label-md font-label-md px-4 py-2.5 rounded-lg shadow-sm transition-colors active:scale-[0.99] font-medium" type="button">
+<span class="material-symbols-outlined text-[18px]" data-icon="add">add</span>
+<span>+ Record Payment</span>
+</button>
+</div>
+</section>
+<!-- Action Bar: Search, Filters, and Table Controller -->
+<section class="bg-surface-container-lowest border border-outline-variant/30 rounded-lg p-space-md shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+<!-- Search Input -->
+<div class="relative w-full md:w-96">
+<div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-outline">
+<span class="material-symbols-outlined text-[18px]" data-icon="search">search</span>
+</div>
+<input class="w-full h-10 pl-10 pr-4 bg-surface-container-lowest border border-outline-variant/40 rounded-lg text-body-sm font-body-sm text-on-surface placeholder:text-outline focus:outline-none focus:border-primary-container focus:ring-2 focus:ring-primary-container/20 transition-all" placeholder="Search by operator or plate number" type="text"/>
+</div>
+<!-- Filter Dropdowns Cluster -->
+<div class="flex items-center gap-3 w-full md:w-auto">
+<!-- Filter 1: Payment Types -->
+<div class="relative w-full sm:w-48">
+<select class="w-full h-10 appearance-none bg-surface-container-lowest border border-outline-variant/40 rounded-lg px-3 pr-8 text-body-sm font-body-sm text-on-surface font-medium focus:outline-none focus:border-primary-container focus:ring-2 focus:ring-primary-container/20 transition-all cursor-pointer">
+<option value="">All Payment Types</option>
+<option value="daily">Daily</option>
+<option value="quarterly">Quarterly Tax</option>
+</select>
+<div class="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none text-outline">
+<span class="material-symbols-outlined text-[18px]" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+<!-- Filter 2: Statuses -->
+<div class="relative w-full sm:w-44">
+<select class="w-full h-10 appearance-none bg-surface-container-lowest border border-outline-variant/40 rounded-lg px-3 pr-8 text-body-sm font-body-sm text-on-surface font-medium focus:outline-none focus:border-primary-container focus:ring-2 focus:ring-primary-container/20 transition-all cursor-pointer">
+<option value="">All Statuses</option>
+<option value="paid">Paid</option>
+<option value="pending">Pending</option>
+</select>
+<div class="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none text-outline">
+<span class="material-symbols-outlined text-[18px]" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+<!-- Quick Refresh Reset -->
+<button class="h-10 w-10 border border-outline-variant/40 rounded-lg flex items-center justify-center text-outline hover:text-on-surface hover:bg-surface-container-low transition-colors" title="Reset Filters" type="button">
+<span class="material-symbols-outlined text-[18px]" data-icon="filter_alt_off">filter_alt_off</span>
+</button>
+</div>
+</section>
+<!-- Data Table Card Container -->
+<section class="bg-surface-container-lowest border border-outline-variant/30 rounded-lg shadow-sm overflow-hidden flex flex-col">
+<div class="overflow-x-auto">
+<table class="w-full border-collapse text-left">
+<thead>
+<tr class="h-10 bg-surface-container-low border-b border-outline-variant/30">
+<th class="px-space-md text-label-xs font-label-xs uppercase tracking-wider text-outline font-semibold" scope="col">
+                  Receipt ID
+                </th>
+<th class="px-space-md text-label-xs font-label-xs uppercase tracking-wider text-outline font-semibold" scope="col">
+                  Operator
+                </th>
+<th class="px-space-md text-label-xs font-label-xs uppercase tracking-wider text-outline font-semibold" scope="col">
+                  Plate Number
+                </th>
+<th class="px-space-md text-label-xs font-label-xs uppercase tracking-wider text-outline font-semibold text-right" scope="col">
+                  Amount
+                </th>
+<th class="px-space-md text-label-xs font-label-xs uppercase tracking-wider text-outline font-semibold" scope="col">
+                  Payment Type
+                </th>
+<th class="px-space-md text-label-xs font-label-xs uppercase tracking-wider text-outline font-semibold" scope="col">
+                  Date Paid
+                </th>
+<th class="px-space-md text-label-xs font-label-xs uppercase tracking-wider text-outline font-semibold" scope="col">
+                  Status
+                </th>
+<th class="px-space-md text-label-xs font-label-xs uppercase tracking-wider text-outline font-semibold text-center" scope="col">
+                  Actions
+                </th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/20">
+<!-- Record PAY-001 -->
+<tr class="h-[52px] hover:bg-surface-container-low/50 transition-colors">
+<td class="px-space-md font-mono text-body-sm font-body-sm text-primary font-medium whitespace-nowrap">
+                  PAY-001
+                </td>
+<td class="px-space-md text-body-sm font-body-sm font-medium text-on-surface whitespace-nowrap">
+                  Jean Claude Habimana
+                </td>
+<td class="px-space-md font-mono text-body-sm font-body-sm text-on-surface-variant whitespace-nowrap">
+<span class="px-2 py-0.5 bg-surface-container rounded border border-outline-variant/20 font-semibold text-on-surface">RAB 123A</span>
+</td>
+<td class="px-space-md text-body-sm font-body-sm font-semibold text-on-surface text-right whitespace-nowrap">
+                  RWF 1,000
+                </td>
+<td class="px-space-md text-body-sm font-body-sm text-on-surface-variant whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                    Daily
+                  </span>
+</td>
+<td class="px-space-md text-body-sm font-body-sm text-on-surface-variant whitespace-nowrap">
+                  19 Sep 2026
+                </td>
+<td class="px-space-md whitespace-nowrap">
+<span class="inline-flex items-center rounded-full px-2.5 py-1 text-label-sm font-label-sm font-medium bg-[#2A9D8F]/15 text-[#2A9D8F]">
+                    Paid
+                  </span>
+</td>
+<td class="px-space-md text-center whitespace-nowrap">
+<div class="inline-flex items-center gap-1">
+<button class="p-1.5 rounded text-outline hover:text-primary hover:bg-surface-container transition-colors" title="View Details" type="button">
+<span class="material-symbols-outlined text-[18px]" data-icon="visibility">visibility</span>
+</button>
+<button class="p-1.5 rounded text-outline hover:text-on-surface hover:bg-surface-container transition-colors" title="Edit Record" type="button">
+<span class="material-symbols-outlined text-[18px]" data-icon="edit">edit</span>
+</button>
+<button class="p-1.5 rounded text-outline hover:text-error hover:bg-error-container/40 transition-colors" title="Delete Entry" type="button">
+<span class="material-symbols-outlined text-[18px]" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Record PAY-002 -->
+<tr class="h-[52px] hover:bg-surface-container-low/50 transition-colors">
+<td class="px-space-md font-mono text-body-sm font-body-sm text-primary font-medium whitespace-nowrap">
+                  PAY-002
+                </td>
+<td class="px-space-md text-body-sm font-body-sm font-medium text-on-surface whitespace-nowrap">
+                  Diane Uwase
+                </td>
+<td class="px-space-md font-mono text-body-sm font-body-sm text-on-surface-variant whitespace-nowrap">
+<span class="px-2 py-0.5 bg-surface-container rounded border border-outline-variant/20 font-semibold text-on-surface">RAE 456B</span>
+</td>
+<td class="px-space-md text-body-sm font-body-sm font-semibold text-on-surface text-right whitespace-nowrap">
+                  RWF 5,000
+                </td>
+<td class="px-space-md text-body-sm font-body-sm text-on-surface-variant whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+                    Quarterly Tax
+                  </span>
+</td>
+<td class="px-space-md text-body-sm font-body-sm text-on-surface-variant whitespace-nowrap">
+                  18 Sep 2026
+                </td>
+<td class="px-space-md whitespace-nowrap">
+<span class="inline-flex items-center rounded-full px-2.5 py-1 text-label-sm font-label-sm font-medium bg-[#2A9D8F]/15 text-[#2A9D8F]">
+                    Paid
+                  </span>
+</td>
+<td class="px-space-md text-center whitespace-nowrap">
+<div class="inline-flex items-center gap-1">
+<button class="p-1.5 rounded text-outline hover:text-primary hover:bg-surface-container transition-colors" title="View Details" type="button">
+<span class="material-symbols-outlined text-[18px]" data-icon="visibility">visibility</span>
+</button>
+<button class="p-1.5 rounded text-outline hover:text-on-surface hover:bg-surface-container transition-colors" title="Edit Record" type="button">
+<span class="material-symbols-outlined text-[18px]" data-icon="edit">edit</span>
+</button>
+<button class="p-1.5 rounded text-outline hover:text-error hover:bg-error-container/40 transition-colors" title="Delete Entry" type="button">
+<span class="material-symbols-outlined text-[18px]" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Record PAY-003 -->
+<tr class="h-[52px] hover:bg-surface-container-low/50 transition-colors">
+<td class="px-space-md font-mono text-body-sm font-body-sm text-primary font-medium whitespace-nowrap">
+                  PAY-003
+                </td>
+<td class="px-space-md text-body-sm font-body-sm font-medium text-on-surface whitespace-nowrap">
+                  Eric Ndayishimiye
+                </td>
+<td class="px-space-md font-mono text-body-sm font-body-sm text-on-surface-variant whitespace-nowrap">
+<span class="px-2 py-0.5 bg-surface-container rounded border border-outline-variant/20 font-semibold text-on-surface">RAG 789C</span>
+</td>
+<td class="px-space-md text-body-sm font-body-sm font-semibold text-on-surface text-right whitespace-nowrap">
+                  RWF 1,000
+                </td>
+<td class="px-space-md text-body-sm font-body-sm text-on-surface-variant whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                    Daily
+                  </span>
+</td>
+<td class="px-space-md text-body-sm font-body-sm text-on-surface-variant whitespace-nowrap">
+                  20 Sep 2026
+                </td>
+<td class="px-space-md whitespace-nowrap">
+<span class="inline-flex items-center rounded-full px-2.5 py-1 text-label-sm font-label-sm font-medium bg-[#E9A23B]/20 text-[#B8771B]">
+                    Pending
+                  </span>
+</td>
+<td class="px-space-md text-center whitespace-nowrap">
+<div class="inline-flex items-center gap-1">
+<button class="p-1.5 rounded text-outline hover:text-primary hover:bg-surface-container transition-colors" title="View Details" type="button">
+<span class="material-symbols-outlined text-[18px]" data-icon="visibility">visibility</span>
+</button>
+<button class="p-1.5 rounded text-outline hover:text-on-surface hover:bg-surface-container transition-colors" title="Edit Record" type="button">
+<span class="material-symbols-outlined text-[18px]" data-icon="edit">edit</span>
+</button>
+<button class="p-1.5 rounded text-outline hover:text-error hover:bg-error-container/40 transition-colors" title="Delete Entry" type="button">
+<span class="material-symbols-outlined text-[18px]" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Record PAY-004 -->
+<tr class="h-[52px] hover:bg-surface-container-low/50 transition-colors">
+<td class="px-space-md font-mono text-body-sm font-body-sm text-primary font-medium whitespace-nowrap">
+                  PAY-004
+                </td>
+<td class="px-space-md text-body-sm font-body-sm font-medium text-on-surface whitespace-nowrap">
+                  Patrick Mugabo
+                </td>
+<td class="px-space-md font-mono text-body-sm font-body-sm text-on-surface-variant whitespace-nowrap">
+<span class="px-2 py-0.5 bg-surface-container rounded border border-outline-variant/20 font-semibold text-on-surface">RAC 780D</span>
+</td>
+<td class="px-space-md text-body-sm font-body-sm font-semibold text-on-surface text-right whitespace-nowrap">
+                  RWF 1,000
+                </td>
+<td class="px-space-md text-body-sm font-body-sm text-on-surface-variant whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                    Daily
+                  </span>
+</td>
+<td class="px-space-md text-body-sm font-body-sm text-on-surface-variant whitespace-nowrap">
+                  20 Sep 2026
+                </td>
+<td class="px-space-md whitespace-nowrap">
+<span class="inline-flex items-center rounded-full px-2.5 py-1 text-label-sm font-label-sm font-medium bg-[#2A9D8F]/15 text-[#2A9D8F]">
+                    Paid
+                  </span>
+</td>
+<td class="px-space-md text-center whitespace-nowrap">
+<div class="inline-flex items-center gap-1">
+<button class="p-1.5 rounded text-outline hover:text-primary hover:bg-surface-container transition-colors" title="View Details" type="button">
+<span class="material-symbols-outlined text-[18px]" data-icon="visibility">visibility</span>
+</button>
+<button class="p-1.5 rounded text-outline hover:text-on-surface hover:bg-surface-container transition-colors" title="Edit Record" type="button">
+<span class="material-symbols-outlined text-[18px]" data-icon="edit">edit</span>
+</button>
+<button class="p-1.5 rounded text-outline hover:text-error hover:bg-error-container/40 transition-colors" title="Delete Entry" type="button">
+<span class="material-symbols-outlined text-[18px]" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Record PAY-005 -->
+<tr class="h-[52px] hover:bg-surface-container-low/50 transition-colors">
+<td class="px-space-md font-mono text-body-sm font-body-sm text-primary font-medium whitespace-nowrap">
+                  PAY-005
+                </td>
+<td class="px-space-md text-body-sm font-body-sm font-medium text-on-surface whitespace-nowrap">
+                  Emmanuel Bizimana
+                </td>
+<td class="px-space-md font-mono text-body-sm font-body-sm text-on-surface-variant whitespace-nowrap">
+<span class="px-2 py-0.5 bg-surface-container rounded border border-outline-variant/20 font-semibold text-on-surface">RAD 312M</span>
+</td>
+<td class="px-space-md text-body-sm font-body-sm font-semibold text-on-surface text-right whitespace-nowrap">
+                  RWF 5,000
+                </td>
+<td class="px-space-md text-body-sm font-body-sm text-on-surface-variant whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+                    Quarterly Tax
+                  </span>
+</td>
+<td class="px-space-md text-body-sm font-body-sm text-on-surface-variant whitespace-nowrap">
+                  17 Sep 2026
+                </td>
+<td class="px-space-md whitespace-nowrap">
+<span class="inline-flex items-center rounded-full px-2.5 py-1 text-label-sm font-label-sm font-medium bg-[#E9A23B]/20 text-[#B8771B]">
+                    Pending
+                  </span>
+</td>
+<td class="px-space-md text-center whitespace-nowrap">
+<div class="inline-flex items-center gap-1">
+<button class="p-1.5 rounded text-outline hover:text-primary hover:bg-surface-container transition-colors" title="View Details" type="button">
+<span class="material-symbols-outlined text-[18px]" data-icon="visibility">visibility</span>
+</button>
+<button class="p-1.5 rounded text-outline hover:text-on-surface hover:bg-surface-container transition-colors" title="Edit Record" type="button">
+<span class="material-symbols-outlined text-[18px]" data-icon="edit">edit</span>
+</button>
+<button class="p-1.5 rounded text-outline hover:text-error hover:bg-error-container/40 transition-colors" title="Delete Entry" type="button">
+<span class="material-symbols-outlined text-[18px]" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Pagination Toolbar -->
+<div class="px-space-md py-3.5 bg-surface-container-lowest border-t border-outline-variant/30 flex flex-col sm:flex-row items-center justify-between gap-3">
+<div class="text-body-sm font-body-sm text-outline">
+            Showing <span class="font-medium text-on-surface">1</span> to <span class="font-medium text-on-surface">5</span> of <span class="font-medium text-on-surface">342</span> payments
+          </div>
+<div class="inline-flex items-center gap-1">
+<button class="h-8 w-8 rounded border border-outline-variant/30 flex items-center justify-center text-outline/40 cursor-not-allowed" disabled="" type="button">
+<span class="material-symbols-outlined text-[18px]" data-icon="chevron_left">chevron_left</span>
+</button>
+<button class="h-8 w-8 rounded bg-primary text-on-primary font-label-sm text-label-sm font-medium flex items-center justify-center" type="button">
+              1
+            </button>
+<button class="h-8 w-8 rounded border border-outline-variant/30 hover:bg-surface-container-low text-on-surface font-label-sm text-label-sm font-medium flex items-center justify-center transition-colors" type="button">
+              2
+            </button>
+<button class="h-8 w-8 rounded border border-outline-variant/30 hover:bg-surface-container-low text-on-surface font-label-sm text-label-sm font-medium flex items-center justify-center transition-colors" type="button">
+              3
+            </button>
+<span class="px-1 text-outline">...</span>
+<button class="h-8 w-8 rounded border border-outline-variant/30 hover:bg-surface-container-low text-on-surface font-label-sm text-label-sm font-medium flex items-center justify-center transition-colors" type="button">
+              69
+            </button>
+<button class="h-8 w-8 rounded border border-outline-variant/30 hover:bg-surface-container-low text-on-surface flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Institutional Footer Note -->
+<footer class="pt-space-md border-t border-outline-variant/20 flex flex-col sm:flex-row items-center justify-between text-label-xs font-label-xs text-outline gap-2 mb-space-lg">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+<span>Municipal Ledger Node: Kigali Central Gateway 01</span>
+</div>
+<div>
+<span>Electronic Tax Compliance Registry © 2026 TransitDues Co-op. Strictly Internal Audit Use.</span>
+</div>
+</footer>
+</main>
+</div>
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-[#1F2A44]/50 backdrop-blur-[1px] p-4"><div class="bg-surface-container-lowest rounded-lg border border-outline-variant/30 shadow-2xl max-w-md w-full p-6 flex flex-col gap-5"><div class="flex items-start gap-4"><div class="w-10 h-10 rounded-full bg-error-container/40 text-[#ba1a1a] flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-[24px]" data-icon="warning">warning</span></div><div class="flex flex-col gap-1"><h2 class="text-headline-sm font-headline-sm font-bold text-on-surface">Delete Record?</h2><p class="text-body-sm font-body-sm text-on-surface-variant">Are you sure you want to delete this record? This action cannot be undone.</p></div></div><div class="bg-surface-container-low rounded-lg p-3.5 border border-outline-variant/30 flex flex-col gap-2.5 text-body-sm font-body-sm"><div class="flex items-center justify-between pb-2 border-b border-outline-variant/20"><span class="text-label-xs font-label-xs uppercase tracking-wider text-outline font-semibold">Receipt ID</span><span class="font-mono font-bold text-primary">PAY-003</span></div><div class="flex items-center justify-between"><span class="text-label-sm font-label-sm text-outline">Operator</span><span class="font-medium text-on-surface">Eric Ndayishimiye</span></div><div class="flex items-center justify-between"><span class="text-label-sm font-label-sm text-outline">Plate Number</span><span class="px-2 py-0.5 bg-surface-container rounded border border-outline-variant/20 font-mono text-label-xs font-semibold text-on-surface">RAG 789C</span></div><div class="flex items-center justify-between"><span class="text-label-sm font-label-sm text-outline">Amount</span><span class="font-semibold text-on-surface">RWF 1,000</span></div><div class="flex items-center justify-between"><span class="text-label-sm font-label-sm text-outline">Payment Type</span><span class="text-on-surface-variant">Daily Dues</span></div><div class="flex items-center justify-between pt-1"><span class="text-label-sm font-label-sm text-outline">Status</span><span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-label-xs font-label-xs font-medium bg-[#E9A23B]/20 text-[#B8771B]">Pending</span></div></div><div class="flex items-center justify-end gap-3 pt-2"><button class="rounded-lg border border-outline-variant/40 px-4 py-2 text-label-md font-label-md font-medium text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" type="button">Cancel</button><button class="rounded-lg bg-error hover:bg-error/90 text-on-error px-4 py-2 text-label-md font-label-md font-medium flex items-center gap-2 shadow-sm transition-colors active:scale-[0.99]" type="button"><span class="material-symbols-outlined text-[18px]" data-icon="delete">delete</span><span>Delete Record</span></button></div></div></div></body></html>

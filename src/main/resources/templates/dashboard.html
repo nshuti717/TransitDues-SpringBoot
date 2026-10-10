@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:replace="~{fragments/layout :: layout(~{::#content}, 'dashboard', 'Dashboard Overview', 'Welcome back — here is the current state of the cooperative ledger.')}">
+    <div id="content">
+        <!-- Four Summary Metric Cards -->
+        <section aria-label="Key Performance Metrics" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-gutter">
+            <!-- Card 1: Total Stages -->
+            <div class="bg-surface-container-lowest rounded-lg border border-outline-variant/30 p-space-md shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="flex items-start justify-between">
+                    <span class="text-label-xs font-label-xs text-on-surface-variant uppercase tracking-wider font-semibold">Total Stages</span>
+                    <div class="p-2 rounded-lg bg-surface-container text-primary flex items-center justify-center">
+                        <span class="material-symbols-outlined text-xl" data-icon="location_on">location_on</span>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="text-headline-lg font-headline-lg text-on-surface font-bold" th:text="${totalStages}">0</div>
+                    <p class="text-label-sm font-label-sm text-on-surface-variant mt-1 font-medium">Registered moto-taxi stages</p>
+                </div>
+            </div>
+            <!-- Card 2: Registered Operators -->
+            <div class="bg-surface-container-lowest rounded-lg border border-outline-variant/30 p-space-md shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="flex items-start justify-between">
+                    <span class="text-label-xs font-label-xs text-on-surface-variant uppercase tracking-wider font-semibold">Registered Operators</span>
+                    <div class="p-2 rounded-lg bg-surface-container text-primary flex items-center justify-center">
+                        <span class="material-symbols-outlined text-xl" data-icon="two_wheeler">two_wheeler</span>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="text-headline-lg font-headline-lg text-on-surface font-bold" th:text="${totalOperators}">0</div>
+                    <p class="text-label-sm font-label-sm text-on-surface-variant mt-1 font-medium">Active moto-taxi operators</p>
+                </div>
+            </div>
+            <!-- Card 3: Due Payments Recorded -->
+            <div class="bg-surface-container-lowest rounded-lg border border-outline-variant/30 p-space-md shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="flex items-start justify-between">
+                    <span class="text-label-xs font-label-xs text-on-surface-variant uppercase tracking-wider font-semibold">Due Payments Recorded</span>
+                    <div class="p-2 rounded-lg bg-tertiary-container/10 text-tertiary flex items-center justify-center">
+                        <span class="material-symbols-outlined text-xl" data-icon="receipt_long">receipt_long</span>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="text-headline-lg font-headline-lg text-on-surface font-bold" th:text="${totalDuePayments}">0</div>
+                    <p class="text-label-sm font-label-sm text-on-surface-variant mt-1 font-medium">Total ledger entries</p>
+                </div>
+            </div>
+            <!-- Card 4: Total Amount Collected -->
+            <div class="bg-surface-container-lowest rounded-lg border border-outline-variant/30 p-space-md shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="flex items-start justify-between">
+                    <span class="text-label-xs font-label-xs text-on-surface-variant uppercase tracking-wider font-semibold">Total Amount Collected</span>
+                    <div class="p-2 rounded-lg bg-tertiary-container/10 text-tertiary flex items-center justify-center">
+                        <span class="material-symbols-outlined text-xl" data-icon="payments">payments</span>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="text-headline-lg font-headline-lg text-on-surface font-bold"
+                         th:text="'RWF ' + ${#numbers.formatDecimal(totalAmountCollected, 0, 'COMMA', 0, 'POINT')}">RWF 0</div>
+                    <p class="text-label-sm font-label-sm text-on-surface-variant mt-1 font-medium">Sum of all recorded payments</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Due Payments by Status: real breakdown, replacing the mockup's fabricated chart -->
+        <section aria-labelledby="status-breakdown-heading" class="bg-surface-container-lowest rounded-lg border border-outline-variant/30 shadow-sm overflow-hidden">
+            <div class="px-space-lg py-space-md border-b border-outline-variant/20 bg-surface-container-lowest">
+                <h2 class="text-headline-sm font-headline-sm text-on-surface font-semibold" id="status-breakdown-heading">Due Payments by Status</h2>
+                <p class="text-label-xs font-label-xs text-on-surface-variant mt-0.5">Count of recorded ledger entries grouped by their current status</p>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[320px] text-left border-collapse">
+                    <thead>
+                    <tr class="bg-surface-container-low/60 h-10 border-b border-outline-variant/20">
+                        <th class="px-space-md text-label-xs font-label-xs uppercase text-on-surface-variant font-semibold tracking-wider" scope="col">Status</th>
+                        <th class="px-space-md text-label-xs font-label-xs uppercase text-on-surface-variant font-semibold tracking-wider text-right" scope="col">Count</th>
+                    </tr>
+                    </thead>
+                    <tbody class="divide-y divide-outline-variant/10 font-body-sm text-on-surface">
+                    <tr th:each="entry : ${paymentCountsByStatus}" class="h-[52px] hover:bg-surface-container-low/40 transition-colors">
+                        <td class="px-space-md font-label-md font-medium text-on-surface" th:text="${entry.key}">Paid</td>
+                        <td class="px-space-md text-right font-medium" th:text="${entry.value}">0</td>
+                    </tr>
+                    <tr th:if="${#maps.isEmpty(paymentCountsByStatus)}">
+                        <td class="px-space-md py-6 text-center text-on-surface-variant" colspan="2">No due payments recorded yet.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</div>
+</body>
+</html>

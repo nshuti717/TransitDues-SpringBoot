@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:replace="~{fragments/layout :: layout(~{::#content}, 'operators', 'Deactivate Operator', 'Confirm removal - this is a reversible, history-preserving deactivation, not a permanent delete.')}">
+    <div id="content">
+        <div class="mb-space-lg rounded-lg bg-error-container/40 border border-error/30 p-space-md text-body-sm font-body-sm text-on-error-container" th:if="${errorMessage}" th:text="${errorMessage}">Error.</div>
+
+        <nav aria-label="Breadcrumb" class="flex items-center gap-2 text-label-md font-label-md text-secondary mb-space-md">
+            <a class="text-primary-container hover:underline font-medium flex items-center gap-1" href="/web/operators">
+                <span class="material-symbols-outlined text-sm" data-icon="arrow_back">arrow_back</span>
+                <span>Operators</span>
+            </a>
+            <span class="text-secondary/50">/</span>
+            <span class="text-on-surface font-medium">Deactivate</span>
+        </nav>
+
+        <section class="bg-surface-container-lowest rounded-lg border border-error/30 shadow-sm p-space-xl max-w-xl">
+            <div class="flex items-start gap-space-md mb-space-lg">
+                <div class="p-2 bg-error-container/40 rounded-lg text-error flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-[24px]" data-icon="warning">warning</span>
+                </div>
+                <div>
+                    <h1 class="text-headline-lg font-headline-lg text-on-surface tracking-tight">Deactivate this operator?</h1>
+                    <p class="text-body-sm font-body-sm text-on-surface-variant mt-1">
+                        This is a <span class="font-semibold">soft delete</span>: <span th:text="${operator.fullName}">Operator Name</span>'s
+                        row, every due, payment, and audit entry stays in the database exactly as it is. Only their
+                        status flips to DEACTIVATED and their login (if any) is disabled, so they drop off the active
+                        operator list and can no longer sign in or use the portal. This action can only be reversed
+                        by an administrator editing the record directly in the database.
+                    </p>
+                </div>
+            </div>
+
+            <dl class="divide-y divide-outline-variant/20 border border-outline-variant/20 rounded-lg mb-space-lg">
+                <div class="px-space-md py-space-sm flex items-center justify-between">
+                    <dt class="text-label-sm font-label-sm text-on-surface-variant">Full Name</dt>
+                    <dd class="text-body-sm font-body-sm text-on-surface font-medium" th:text="${operator.fullName}">Name</dd>
+                </div>
+                <div class="px-space-md py-space-sm flex items-center justify-between">
+                    <dt class="text-label-sm font-label-sm text-on-surface-variant">Phone</dt>
+                    <dd class="text-body-sm font-body-sm text-on-surface font-mono" th:text="${operator.phoneNumber}">0700000000</dd>
+                </div>
+                <div class="px-space-md py-space-sm flex items-center justify-between">
+                    <dt class="text-label-sm font-label-sm text-on-surface-variant">Plate Number</dt>
+                    <dd class="text-body-sm font-body-sm text-on-surface font-mono" th:text="${operator.plateNumber}">RAB 123A</dd>
+                </div>
+                <div class="px-space-md py-space-sm flex items-center justify-between">
+                    <dt class="text-label-sm font-label-sm text-on-surface-variant">Stage</dt>
+                    <dd class="text-body-sm font-body-sm text-on-surface" th:text="${operator.stage.name}">Stage</dd>
+                </div>
+                <div class="px-space-md py-space-sm flex items-center justify-between">
+                    <dt class="text-label-sm font-label-sm text-on-surface-variant">Current Status</dt>
+                    <dd class="text-body-sm font-body-sm text-on-surface" th:text="${operator.approvalStatus}">ACTIVE</dd>
+                </div>
+            </dl>
+
+            <form method="post" th:action="@{/web/operators/{id}/delete(id=${operator.id})}" class="space-y-space-md">
+                <div>
+                    <label class="block text-label-sm font-label-sm text-on-surface-variant mb-1" for="reason">Reason (recommended, kept in the audit log)</label>
+                    <input class="w-full h-10 px-space-sm rounded-lg border border-outline-variant/60 bg-surface-container-lowest text-on-surface text-body-sm" id="reason" name="reason" placeholder="e.g. Operator left the cooperative" type="text"/>
+                </div>
+                <div class="flex items-center justify-end gap-space-sm">
+                    <a class="h-11 px-space-lg rounded-lg border border-outline-variant/40 bg-surface-container-lowest text-on-surface font-medium text-label-md font-label-md hover:bg-surface-container-low active:scale-[0.99] transition-all flex items-center justify-center"
+                       href="/web/operators">
+                        Cancel
+                    </a>
+                    <button class="h-11 px-space-lg rounded-lg bg-error hover:bg-error/90 text-on-error font-medium text-label-md font-label-md shadow-sm active:scale-[0.99] transition-all flex items-center justify-center gap-2" type="submit">
+                        <span class="material-symbols-outlined text-[18px]" data-icon="delete">delete</span>
+                        <span>Confirm Deactivation</span>
+                    </button>
+                </div>
+            </form>
+        </section>
+    </div>
+</div>
+</body>
+</html>

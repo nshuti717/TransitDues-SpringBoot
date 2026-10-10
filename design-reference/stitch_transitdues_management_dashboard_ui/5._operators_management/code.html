@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Operators Management - TransitDues Cooperative Ledger</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-tint": "#1555d1",
+            "on-primary": "#ffffff",
+            "on-error": "#ffffff",
+            "primary-fixed": "#dbe1ff",
+            "tertiary": "#00655b",
+            "on-tertiary-fixed-variant": "#005048",
+            "on-surface": "#131c2a",
+            "on-tertiary-container": "#ddfff8",
+            "on-tertiary-fixed": "#00201c",
+            "tertiary-fixed": "#8cf5e4",
+            "secondary-fixed": "#d9e2ff",
+            "surface-container-highest": "#dae3f7",
+            "on-background": "#131c2a",
+            "surface-container-lowest": "#ffffff",
+            "primary-fixed-dim": "#b3c5ff",
+            "outline-variant": "#c3c6d6",
+            "inverse-surface": "#283140",
+            "inverse-primary": "#b3c5ff",
+            "surface-container": "#e7eeff",
+            "tertiary-fixed-dim": "#6fd8c8",
+            "secondary": "#535e7b",
+            "on-secondary-fixed-variant": "#3b4662",
+            "inverse-on-surface": "#ebf1ff",
+            "tertiary-container": "#008074",
+            "on-primary-fixed": "#00174a",
+            "primary": "#0650cc",
+            "on-secondary-container": "#56607d",
+            "secondary-container": "#d1dcfe",
+            "surface-variant": "#dae3f7",
+            "on-primary-fixed-variant": "#003ea6",
+            "on-secondary-fixed": "#0f1b34",
+            "error": "#ba1a1a",
+            "on-primary-container": "#f9f7ff",
+            "surface-bright": "#f9f9ff",
+            "surface-dim": "#d1daee",
+            "on-error-container": "#93000a",
+            "surface-container-low": "#f0f3ff",
+            "primary-container": "#356ae6",
+            "background": "#f9f9ff",
+            "on-tertiary": "#ffffff",
+            "outline": "#737685",
+            "on-surface-variant": "#434654",
+            "error-container": "#ffdad6",
+            "secondary-fixed-dim": "#bbc6e7",
+            "surface-container-high": "#dfe8fc",
+            "surface": "#f9f9ff",
+            "on-secondary": "#ffffff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xs": "0.25rem",
+            "space-lg": "1.5rem",
+            "space-sm": "0.5rem",
+            "space-xl": "2rem",
+            "margin": "2rem",
+            "gutter": "1.5rem",
+            "space-md": "1rem"
+          },
+          "fontFamily": {
+            "headline-xl": ["Inter"],
+            "headline-md": ["Inter"],
+            "headline-lg": ["Inter"],
+            "label-md": ["Inter"],
+            "label-xs": ["Inter"],
+            "label-sm": ["Inter"],
+            "headline-sm": ["Inter"],
+            "body-lg": ["Inter"],
+            "body-sm": ["Inter"],
+            "body-md": ["Inter"]
+          },
+          "fontSize": {
+            "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "500" }],
+            "label-xs": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600" }],
+            "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+            "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "600" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }]
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-background text-on-surface antialiased min-h-screen flex selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- SHARED COMPONENT: SideNavBar (Anchored Fixed Rail) -->
+<aside class="fixed top-0 left-0 h-screen w-64 z-40 bg-inverse-surface border-r border-outline-variant/20 shadow-sm flex flex-col justify-between p-space-md">
+<!-- Top Branding & Navigation Group -->
+<div class="space-y-6">
+<!-- Monogram Header -->
+<div class="flex items-center gap-3 px-space-sm py-2">
+<div class="w-10 h-10 rounded-lg bg-primary-container text-on-primary flex items-center justify-center font-headline-md text-headline-md font-bold shadow-sm">
+          TD
+        </div>
+<div>
+<h1 class="text-headline-md font-headline-md font-bold text-inverse-on-surface leading-tight tracking-tight">TransitDues</h1>
+<p class="text-body-sm font-body-sm text-inverse-on-surface/70">Cooperative Ledger</p>
+</div>
+</div>
+<!-- Navigation Tabs -->
+<nav class="space-y-1">
+<!-- Dashboard -->
+<a class="text-inverse-on-surface/70 hover:text-inverse-on-surface hover:bg-surface-variant/10 rounded-lg font-medium px-space-md py-space-sm flex items-center gap-space-sm transition-colors text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined text-xl" data-icon="dashboard">dashboard</span>
+<span>Dashboard</span>
+</a>
+<!-- Stages -->
+<a class="text-inverse-on-surface/70 hover:text-inverse-on-surface hover:bg-surface-variant/10 rounded-lg font-medium px-space-md py-space-sm flex items-center gap-space-sm transition-colors text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined text-xl" data-icon="location_on">location_on</span>
+<span>Stages</span>
+</a>
+<!-- Operators (ACTIVE) -->
+<a class="bg-primary text-on-primary rounded-lg font-medium px-space-md py-space-sm flex items-center gap-space-sm text-label-md font-label-md shadow-sm active:scale-[0.99] transition-transform" href="#">
+<span class="material-symbols-outlined text-xl" data-icon="two_wheeler">two_wheeler</span>
+<span>Operators</span>
+</a>
+<!-- Due Payments -->
+<a class="text-inverse-on-surface/70 hover:text-inverse-on-surface hover:bg-surface-variant/10 rounded-lg font-medium px-space-md py-space-sm flex items-center gap-space-sm transition-colors text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined text-xl" data-icon="receipt_long">receipt_long</span>
+<span>Due Payments</span>
+</a>
+</nav>
+</div>
+<!-- Footer Action -->
+<div>
+<div class="pt-4 border-t border-outline-variant/10">
+<a class="text-inverse-on-surface/70 hover:text-error hover:bg-error/10 rounded-lg font-medium px-space-md py-space-sm flex items-center gap-space-sm transition-colors text-label-md font-label-md" href="#">
+<span class="material-symbols-outlined text-xl" data-icon="logout">logout</span>
+<span>Logout</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main View Area (ml-64 offset for fixed 260px sidebar rail) -->
+<div class="flex-1 ml-64 flex flex-col min-w-0">
+<!-- SHARED COMPONENT: TopNavBar -->
+<header class="sticky top-0 right-0 z-30 h-16 bg-surface-container-lowest border-b border-outline-variant/30 shadow-sm flex justify-between items-center px-space-xl">
+<div class="flex items-center gap-2">
+<span class="text-headline-sm font-headline-sm text-on-surface">Operators Management</span>
+<span class="text-outline-variant text-body-sm font-body-sm">|</span>
+<span class="text-on-surface-variant text-body-sm font-body-sm">Admin Co-op Kigali</span>
+</div>
+<div class="flex items-center gap-4">
+<!-- Notification Trailing Action -->
+<button aria-label="Notifications" class="p-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-lg transition-colors relative" type="button">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error ring-2 ring-surface-container-lowest"></span>
+</button>
+<!-- Admin Profile Avatar & Entity -->
+<div class="flex items-center gap-3 pl-3 border-l border-outline-variant/30">
+<div class="w-9 h-9 rounded-full bg-surface-container-high border border-outline-variant/40 flex items-center justify-center text-primary font-label-md text-label-md">
+            CK
+          </div>
+<div class="hidden sm:block text-left">
+<p class="text-label-md font-label-md text-on-surface leading-tight">Admin Co-op Kigali</p>
+<p class="text-label-xs font-label-xs text-on-surface-variant">District Treasury Station</p>
+</div>
+</div>
+</div>
+</header>
+<!-- Page Workspace Canvas -->
+<main class="flex-1 p-space-xl max-w-7xl w-full mx-auto space-y-space-lg">
+<!-- Breadcrumb Navigation -->
+<nav class="flex items-center gap-2 text-body-sm font-body-sm text-outline">
+<a class="hover:text-on-surface transition-colors" href="#">TransitDues</a>
+<span>/</span>
+<a class="hover:text-on-surface transition-colors" href="#">Cooperatives</a>
+<span>/</span>
+<span class="text-on-surface font-label-md text-label-md">Operators Management</span>
+</nav>
+<!-- Header Section: Title, Subtitle, and Operations Action Bar -->
+<section class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<h2 class="text-headline-xl font-headline-xl text-on-surface tracking-tight">Operators Management</h2>
+<p class="text-body-md font-body-md text-on-surface-variant mt-1">Register and manage moto-taxi operators.</p>
+</div>
+<!-- Action Bar: Search, Stage Filter, and Primary Creation Button -->
+<div class="flex flex-wrap items-center gap-3">
+<!-- Search Input (w-80) -->
+<div class="relative w-80">
+<span class="material-symbols-outlined absolute left-3 top-2.5 text-outline text-xl pointer-events-none" data-icon="search">search</span>
+<input class="w-full h-10 pl-10 pr-3 text-body-md font-body-md rounded-lg border border-outline-variant/60 bg-surface-container-lowest text-on-surface placeholder:text-outline focus:outline-none focus:border-primary-container focus:ring-2 focus:ring-primary-container/20 transition-all shadow-sm" placeholder="Search by name, phone number, or plate number" type="text"/>
+</div>
+<!-- Filter Dropdown: Filter by Stage -->
+<div class="relative">
+<select aria-label="Filter by Stage" class="h-10 pl-3.5 pr-8 text-label-md font-label-md rounded-lg border border-outline-variant/60 bg-surface-container-lowest text-on-surface focus:outline-none focus:border-primary-container focus:ring-2 focus:ring-primary-container/20 transition-all shadow-sm appearance-none cursor-pointer">
+<option value="all">Filter by Stage (All Stages)</option>
+<option value="remera">Remera</option>
+<option value="nyabugogo">Nyabugogo</option>
+<option value="kimironko">Kimironko</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-2.5 text-outline text-lg pointer-events-none" data-icon="expand_more">expand_more</span>
+</div>
+<!-- Primary Button: + Add Operator -->
+<button class="h-10 px-4 py-2.5 bg-primary-container hover:bg-surface-tint text-on-primary rounded-lg text-label-md font-label-md flex items-center gap-1.5 transition-colors shadow-sm active:scale-[0.99]" type="button">
+<span class="material-symbols-outlined text-lg leading-none" data-icon="add">add</span>
+<span>Add Operator</span>
+</button>
+</div>
+</section>
+<!-- Data Table Card Module (Level 1 Elevation) -->
+<section class="bg-surface-container-lowest rounded-lg border border-outline-variant/50 shadow-sm overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<!-- Table Header -->
+<thead>
+<tr class="bg-surface-container-low/70 border-b border-outline-variant/40 h-10">
+<th class="px-space-md py-2 text-label-xs font-label-xs text-outline uppercase tracking-wider w-16" scope="col">ID</th>
+<th class="px-space-md py-2 text-label-xs font-label-xs text-outline uppercase tracking-wider" scope="col">Full Name</th>
+<th class="px-space-md py-2 text-label-xs font-label-xs text-outline uppercase tracking-wider" scope="col">Phone Number</th>
+<th class="px-space-md py-2 text-label-xs font-label-xs text-outline uppercase tracking-wider" scope="col">Plate Number</th>
+<th class="px-space-md py-2 text-label-xs font-label-xs text-outline uppercase tracking-wider" scope="col">Assigned Stage</th>
+<th class="px-space-md py-2 text-label-xs font-label-xs text-outline uppercase tracking-wider" scope="col">Status</th>
+<th class="px-space-md py-2 text-label-xs font-label-xs text-outline uppercase tracking-wider text-right" scope="col">Actions</th>
+</tr>
+</thead>
+<!-- Table Body -->
+<tbody class="divide-y divide-outline-variant/30 text-body-md font-body-md">
+<!-- Row 1 -->
+<tr class="h-[52px] hover:bg-surface-container-low/40 transition-colors">
+<td class="px-space-md py-3 text-outline font-label-md text-label-md">1</td>
+<td class="px-space-md py-3 font-label-md text-label-md text-on-surface">Jean Claude Habimana</td>
+<td class="px-space-md py-3 text-on-surface-variant font-mono text-body-sm">0788123456</td>
+<td class="px-space-md py-3">
+<span class="inline-flex items-center px-2 py-0.5 rounded font-mono text-label-xs text-on-surface bg-surface-container border border-outline-variant/50">
+                    RAB 123A
+                  </span>
+</td>
+<td class="px-space-md py-3 text-on-surface">Remera</td>
+<td class="px-space-md py-3">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-label-sm font-label-sm bg-tertiary-container/15 text-tertiary">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+                    Active
+                  </span>
+</td>
+<td class="px-space-md py-3 text-right">
+<div class="inline-flex items-center justify-end gap-1">
+<button class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-surface-container rounded transition-colors" title="View Details" type="button">
+<span class="material-symbols-outlined text-lg" data-icon="visibility">visibility</span>
+</button>
+<button class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-surface-container rounded transition-colors" title="Edit Operator" type="button">
+<span class="material-symbols-outlined text-lg" data-icon="edit">edit</span>
+</button>
+<button class="p-1.5 text-error hover:bg-error-container/30 rounded transition-colors" title="Delete Operator" type="button">
+<span class="material-symbols-outlined text-lg" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="h-[52px] hover:bg-surface-container-low/40 transition-colors">
+<td class="px-space-md py-3 text-outline font-label-md text-label-md">2</td>
+<td class="px-space-md py-3 font-label-md text-label-md text-on-surface">Diane Uwase</td>
+<td class="px-space-md py-3 text-on-surface-variant font-mono text-body-sm">0790234567</td>
+<td class="px-space-md py-3">
+<span class="inline-flex items-center px-2 py-0.5 rounded font-mono text-label-xs text-on-surface bg-surface-container border border-outline-variant/50">
+                    RAE 456B
+                  </span>
+</td>
+<td class="px-space-md py-3 text-on-surface">Nyabugogo</td>
+<td class="px-space-md py-3">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-label-sm font-label-sm bg-tertiary-container/15 text-tertiary">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+                    Active
+                  </span>
+</td>
+<td class="px-space-md py-3 text-right">
+<div class="inline-flex items-center justify-end gap-1">
+<button class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-surface-container rounded transition-colors" title="View Details" type="button">
+<span class="material-symbols-outlined text-lg" data-icon="visibility">visibility</span>
+</button>
+<button class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-surface-container rounded transition-colors" title="Edit Operator" type="button">
+<span class="material-symbols-outlined text-lg" data-icon="edit">edit</span>
+</button>
+<button class="p-1.5 text-error hover:bg-error-container/30 rounded transition-colors" title="Delete Operator" type="button">
+<span class="material-symbols-outlined text-lg" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="h-[52px] hover:bg-surface-container-low/40 transition-colors">
+<td class="px-space-md py-3 text-outline font-label-md text-label-md">3</td>
+<td class="px-space-md py-3 font-label-md text-label-md text-on-surface">Eric Ndayishimiye</td>
+<td class="px-space-md py-3 text-on-surface-variant font-mono text-body-sm">0723456789</td>
+<td class="px-space-md py-3">
+<span class="inline-flex items-center px-2 py-0.5 rounded font-mono text-label-xs text-on-surface bg-surface-container border border-outline-variant/50">
+                    RAG 789C
+                  </span>
+</td>
+<td class="px-space-md py-3 text-on-surface">Kimironko</td>
+<td class="px-space-md py-3">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-label-sm font-label-sm bg-tertiary-container/15 text-tertiary">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+                    Active
+                  </span>
+</td>
+<td class="px-space-md py-3 text-right">
+<div class="inline-flex items-center justify-end gap-1">
+<button class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-surface-container rounded transition-colors" title="View Details" type="button">
+<span class="material-symbols-outlined text-lg" data-icon="visibility">visibility</span>
+</button>
+<button class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-surface-container rounded transition-colors" title="Edit Operator" type="button">
+<span class="material-symbols-outlined text-lg" data-icon="edit">edit</span>
+</button>
+<button class="p-1.5 text-error hover:bg-error-container/30 rounded transition-colors" title="Delete Operator" type="button">
+<span class="material-symbols-outlined text-lg" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="h-[52px] hover:bg-surface-container-low/40 transition-colors">
+<td class="px-space-md py-3 text-outline font-label-md text-label-md">4</td>
+<td class="px-space-md py-3 font-label-md text-label-md text-on-surface">Patrick Mugabo</td>
+<td class="px-space-md py-3 text-on-surface-variant font-mono text-body-sm">0785112233</td>
+<td class="px-space-md py-3">
+<span class="inline-flex items-center px-2 py-0.5 rounded font-mono text-label-xs text-on-surface bg-surface-container border border-outline-variant/50">
+                    RAC 780D
+                  </span>
+</td>
+<td class="px-space-md py-3 text-on-surface">Remera</td>
+<td class="px-space-md py-3">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-label-sm font-label-sm bg-tertiary-container/15 text-tertiary">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+                    Active
+                  </span>
+</td>
+<td class="px-space-md py-3 text-right">
+<div class="inline-flex items-center justify-end gap-1">
+<button class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-surface-container rounded transition-colors" title="View Details" type="button">
+<span class="material-symbols-outlined text-lg" data-icon="visibility">visibility</span>
+</button>
+<button class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-surface-container rounded transition-colors" title="Edit Operator" type="button">
+<span class="material-symbols-outlined text-lg" data-icon="edit">edit</span>
+</button>
+<button class="p-1.5 text-error hover:bg-error-container/30 rounded transition-colors" title="Delete Operator" type="button">
+<span class="material-symbols-outlined text-lg" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="h-[52px] hover:bg-surface-container-low/40 transition-colors">
+<td class="px-space-md py-3 text-outline font-label-md text-label-md">5</td>
+<td class="px-space-md py-3 font-label-md text-label-md text-on-surface">Emmanuel Bizimana</td>
+<td class="px-space-md py-3 text-on-surface-variant font-mono text-body-sm">0791445566</td>
+<td class="px-space-md py-3">
+<span class="inline-flex items-center px-2 py-0.5 rounded font-mono text-label-xs text-on-surface bg-surface-container border border-outline-variant/50">
+                    RAD 312M
+                  </span>
+</td>
+<td class="px-space-md py-3 text-on-surface">Nyabugogo</td>
+<td class="px-space-md py-3">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-label-sm font-label-sm bg-tertiary-container/15 text-tertiary">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+                    Active
+                  </span>
+</td>
+<td class="px-space-md py-3 text-right">
+<div class="inline-flex items-center justify-end gap-1">
+<button class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-surface-container rounded transition-colors" title="View Details" type="button">
+<span class="material-symbols-outlined text-lg" data-icon="visibility">visibility</span>
+</button>
+<button class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-surface-container rounded transition-colors" title="Edit Operator" type="button">
+<span class="material-symbols-outlined text-lg" data-icon="edit">edit</span>
+</button>
+<button class="p-1.5 text-error hover:bg-error-container/30 rounded transition-colors" title="Delete Operator" type="button">
+<span class="material-symbols-outlined text-lg" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Footer Pagination Bar -->
+<div class="px-space-md py-3 bg-surface-container-lowest border-t border-outline-variant/40 flex flex-col sm:flex-row items-center justify-between gap-3 text-body-sm font-body-sm">
+<p class="text-on-surface-variant">
+            Showing <span class="font-medium text-on-surface">1</span> to <span class="font-medium text-on-surface">5</span> of <span class="font-medium text-on-surface">86</span> operators
+          </p>
+<div class="flex items-center gap-1">
+<!-- Previous Button -->
+<button class="px-3 py-1.5 rounded border border-outline-variant/60 text-label-sm font-label-sm text-on-surface-variant hover:bg-surface-container-low transition-colors disabled:opacity-50 disabled:pointer-events-none" disabled="" type="button">
+              Previous
+            </button>
+<!-- Page 1 (Active) -->
+<button class="w-8 h-8 rounded text-label-sm font-label-sm bg-primary-container text-on-primary font-medium flex items-center justify-center" type="button">
+              1
+            </button>
+<!-- Page 2 -->
+<button class="w-8 h-8 rounded text-label-sm font-label-sm border border-outline-variant/60 text-on-surface hover:bg-surface-container-low flex items-center justify-center transition-colors" type="button">
+              2
+            </button>
+<!-- Page 3 -->
+<button class="w-8 h-8 rounded text-label-sm font-label-sm border border-outline-variant/60 text-on-surface hover:bg-surface-container-low flex items-center justify-center transition-colors" type="button">
+              3
+            </button>
+<!-- Ellipsis -->
+<span class="px-1.5 text-outline text-label-sm font-label-sm">...</span>
+<!-- Page 18 -->
+<button class="w-8 h-8 rounded text-label-sm font-label-sm border border-outline-variant/60 text-on-surface hover:bg-surface-container-low flex items-center justify-center transition-colors" type="button">
+              18
+            </button>
+<!-- Next Button -->
+<button class="px-3 py-1.5 rounded border border-outline-variant/60 text-label-sm font-label-sm text-on-surface hover:bg-surface-container-low transition-colors" type="button">
+              Next
+            </button>
+</div>
+</div>
+</section>
+</main>
+</div>
+</body></html>

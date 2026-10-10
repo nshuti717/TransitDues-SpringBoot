@@ -1,9 +1,12 @@
-# Use this workspace to collaborate
 workspace:
   id: 879602c1-1b6a-42de-8fe4-5d34ecfd6b50
-
-# All resources in the `postman/` folder are automatically registered in Local View.
-# Point to additional files outside the `postman/` folder to register them individually. Example:
-#localResources:
-#  collections:
-#    - ../tests/E2E Test Collection/
+localResources:
+  collections:
+    - ../TransitDues-API.postman_collection.json
+cloudResources:
+  collections:
+    ../TransitDues-API.postman_collection.json: 58190077-0a546eeb-0936-461c-81d0-d472b4c96a20
+    ../postman/collections/Clinic System CRUD: 58190077-bcbf5738-573f-479f-af87-24a8cd78f6d3
+    ../postman/collections/TransitDues API: 58190077-6d04f853-9f1b-4317-a0a7-6ed968d3e667
+  globals:
+    ../postman/globals/workspace.globals.yaml: 433f190c-5e21-4f42-829b-b2ff5ecb3ab1

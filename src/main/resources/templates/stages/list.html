@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<div th:replace="~{fragments/layout :: layout(~{::#content}, 'stages', 'Stages Management', 'Manage moto-taxi stages and their operator capacity.')}">
+    <div id="content">
+        <!-- Title and Primary Action -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-space-md">
+            <div>
+                <h1 class="text-headline-xl font-headline-xl text-on-surface tracking-tight">Stages Management</h1>
+                <p class="text-body-md font-body-md text-on-surface-variant mt-0.5">Manage moto-taxi stages and their operator capacity.</p>
+            </div>
+            <a class="h-11 px-4 w-full sm:w-auto bg-primary-container hover:bg-primary text-on-primary rounded-lg text-label-md font-label-md font-medium flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.99]"
+               href="/web/stages/new" sec:authorize="hasRole('ADMIN')">
+                <span class="material-symbols-outlined text-[20px]" data-icon="add">add</span>
+                <span>Add Stage</span>
+            </a>
+        </div>
+
+        <!-- Data Table Card Container -->
+        <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/40 shadow-sm overflow-hidden flex flex-col">
+            <!-- Table Shell Toolbar -->
+            <div class="p-space-md border-b border-outline-variant/30 flex items-center justify-between bg-surface-container-lowest">
+                <div class="flex items-center gap-space-sm" th:with="count=${#lists.size(stages)}">
+                    <span class="text-label-md font-label-md font-semibold text-on-surface">Registered Stage Locations</span>
+                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-surface-container text-primary"
+                          th:text="${count} + ' ' + (${count} == 1 ? 'stage' : 'stages')">0 stages</span>
+                </div>
+            </div>
+
+            <!-- Data Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[640px] text-left border-collapse">
+                    <thead>
+                    <tr class="bg-background h-10 border-b border-outline-variant/30 text-[11px] font-label-xs uppercase tracking-wider text-secondary">
+                        <th class="px-space-md py-2 font-semibold w-16">ID</th>
+                        <th class="px-space-md py-2 font-semibold">Stage Name</th>
+                        <th class="px-space-md py-2 font-semibold">Location</th>
+                        <th class="px-space-md py-2 font-semibold text-right">Capacity</th>
+                        <th class="px-space-md py-2 font-semibold text-right w-32">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody class="divide-y divide-outline-variant/30 text-body-sm font-body-sm">
+                    <tr th:each="stage, iterStat : ${stages}" class="h-[52px] hover:bg-background/80 transition-colors">
+                        <td class="px-space-md py-3 text-secondary font-mono text-xs"
+                            th:text="'#' + ${#numbers.formatInteger(iterStat.count, 2)}">#01</td>
+                        <td class="px-space-md py-3 font-semibold text-on-surface">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                <span th:text="${stage.name}">Stage Name</span>
+                            </div>
+                        </td>
+                        <td class="px-space-md py-3 text-on-surface-variant">
+                            <span class="inline-flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[16px] text-outline" data-icon="place">place</span>
+                                <span th:text="${stage.location}">Location</span>
+                            </span>
+                        </td>
+                        <td class="px-space-md py-3 text-right font-medium text-on-surface" th:text="${stage.capacity}">0</td>
+                        <td class="px-space-md py-3 text-right">
+                            <div class="flex items-center justify-end gap-1" sec:authorize="hasRole('ADMIN')">
+                                <a class="h-10 w-10 flex items-center justify-center text-secondary hover:text-primary hover:bg-surface-container rounded-md transition-colors"
+                                   th:href="@{/web/stages/{id}/edit(id=${stage.id})}" title="Edit Stage">
+                                    <span class="material-symbols-outlined text-[18px]" data-icon="edit">edit</span>
+                                </a>
+                                <form th:action="@{/web/stages/{id}/delete(id=${stage.id})}" method="post" class="inline"
+                                      onsubmit="return confirm('Delete this stage?');">
+                                    <button class="h-10 w-10 flex items-center justify-center text-error hover:text-on-error hover:bg-error rounded-md transition-colors" title="Delete Stage" type="submit">
+                                        <span class="material-symbols-outlined text-[18px]" data-icon="delete">delete</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(stages)}">
+                        <td class="px-space-md py-6 text-center text-on-surface-variant" colspan="5">No stages registered yet.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

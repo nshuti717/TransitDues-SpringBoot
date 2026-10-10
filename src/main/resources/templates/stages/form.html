@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:replace="~{fragments/layout :: layout(~{::#content}, 'stages', ${stage.id} == null ? 'Add New Stage' : 'Edit Stage', 'Register a moto-taxi stage and allocate its operator capacity.')}">
+    <div id="content">
+        <!-- Breadcrumb Trail -->
+        <nav aria-label="Breadcrumb" class="flex items-center gap-2 text-label-md font-label-md text-secondary mb-space-md">
+            <a class="text-primary-container hover:underline font-medium flex items-center gap-1" href="/web/stages">
+                <span class="material-symbols-outlined text-sm" data-icon="arrow_back">arrow_back</span>
+                <span>Stages</span>
+            </a>
+            <span class="text-secondary/50">/</span>
+            <span class="text-on-surface font-medium" th:text="${stage.id} == null ? 'Add New Stage' : 'Edit Stage'">Add New Stage</span>
+        </nav>
+
+        <!-- View Header -->
+        <div class="mb-space-lg">
+            <h1 class="text-headline-lg font-headline-lg text-on-surface" th:text="${stage.id} == null ? 'Add New Stage' : 'Edit Stage'">Add New Stage</h1>
+            <p class="text-body-md font-body-md text-secondary mt-1">Register a moto-taxi stage and allocate its operator capacity.</p>
+        </div>
+
+        <!-- Form Area -->
+        <div class="max-w-2xl">
+            <!-- Primary Form Card -->
+            <div class="bg-surface-container-lowest border border-outline-variant/40 rounded-lg p-8 shadow-sm">
+                <form class="space-y-6" method="post" th:action="${stage.id} == null ? @{/web/stages} : @{/web/stages/{id}(id=${stage.id})}" th:object="${stage}">
+                    <!-- Stage Name Field -->
+                    <div>
+                        <label class="block text-label-md font-label-md text-on-surface mb-2 font-medium" for="name">
+                            Stage Name <span class="text-error font-semibold">*</span>
+                        </label>
+                        <div class="relative">
+                            <input class="w-full h-11 px-3 bg-surface-container-lowest rounded-lg text-on-surface focus:outline-none transition-all"
+                                   th:classappend="${#fields.hasErrors('name')} ? 'border border-error focus:ring-2 focus:ring-error/20 focus:border-error' : 'border border-outline-variant/60 focus:border-primary-container focus:ring-2 focus:ring-primary-container/20'"
+                                   id="name" placeholder="e.g. Remera Central Park" th:field="*{name}"
+                                   th:attr="aria-invalid=${#fields.hasErrors('name')}" type="text"/>
+                            <span class="material-symbols-outlined absolute right-3 top-2.5 text-error text-[20px]" data-icon="error" th:if="${#fields.hasErrors('name')}">error</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 mt-1.5 text-error text-label-sm font-label-sm" th:if="${#fields.hasErrors('name')}">
+                            <span class="material-symbols-outlined text-[15px]" data-icon="warning">warning</span>
+                            <span th:errors="*{name}">Stage name is required.</span>
+                        </div>
+                    </div>
+
+                    <!-- Location Field -->
+                    <div>
+                        <label class="block text-label-md font-label-md text-on-surface mb-2 font-medium" for="location">
+                            Location <span class="text-error font-semibold">*</span>
+                        </label>
+                        <div class="relative">
+                            <input class="w-full h-11 px-3 bg-surface-container-lowest rounded-lg text-on-surface placeholder:text-outline-variant focus:outline-none transition-all"
+                                   th:classappend="${#fields.hasErrors('location')} ? 'border border-error focus:ring-2 focus:ring-error/20 focus:border-error' : 'border border-outline-variant/60 focus:border-primary-container focus:ring-2 focus:ring-primary-container/20'"
+                                   id="location" placeholder="e.g. Gasabo, Kigali (Near Amahoro Stadium)" th:field="*{location}"
+                                   th:attr="aria-invalid=${#fields.hasErrors('location')}" type="text"/>
+                            <span class="material-symbols-outlined absolute right-3 top-2.5 text-error text-[20px]" data-icon="error" th:if="${#fields.hasErrors('location')}">error</span>
+                            <span class="material-symbols-outlined absolute right-3 top-2.5 text-outline text-[20px]" data-icon="pin_drop" th:unless="${#fields.hasErrors('location')}">pin_drop</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 mt-1.5 text-error text-label-sm font-label-sm" th:if="${#fields.hasErrors('location')}">
+                            <span class="material-symbols-outlined text-[15px]" data-icon="warning">warning</span>
+                            <span th:errors="*{location}">Location is required.</span>
+                        </div>
+                        <p class="text-label-xs font-label-xs text-secondary mt-1.5" th:unless="${#fields.hasErrors('location')}">
+                            Enter sector and district in Rwanda.
+                        </p>
+                    </div>
+
+                    <!-- Capacity Field -->
+                    <div>
+                        <label class="block text-label-md font-label-md text-on-surface mb-2 font-medium" for="capacity">
+                            Capacity <span class="text-error font-semibold">*</span>
+                        </label>
+                        <div class="relative">
+                            <input class="w-full h-11 px-3 bg-surface-container-lowest rounded-lg text-on-surface focus:outline-none transition-all"
+                                   th:classappend="${#fields.hasErrors('capacity')} ? 'border border-error focus:ring-2 focus:ring-error/20 focus:border-error' : 'border border-outline-variant/60 focus:border-primary-container focus:ring-2 focus:ring-primary-container/20'"
+                                   id="capacity" th:field="*{capacity}"
+                                   th:attr="aria-invalid=${#fields.hasErrors('capacity')}" type="number"/>
+                            <span class="material-symbols-outlined absolute right-3 top-2.5 text-error text-[20px]" data-icon="error" th:if="${#fields.hasErrors('capacity')}">error</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 mt-1.5 text-error text-label-sm font-label-sm" th:if="${#fields.hasErrors('capacity')}">
+                            <span class="material-symbols-outlined text-[15px]" data-icon="warning">warning</span>
+                            <span th:errors="*{capacity}">Capacity must be greater than zero.</span>
+                        </div>
+                    </div>
+
+                    <!-- Information Notice Box -->
+                    <div class="bg-surface-container-low border border-outline-variant/40 p-4 rounded-lg flex items-start gap-3">
+                        <span class="material-symbols-outlined text-primary-container text-[20px] mt-0.5 flex-shrink-0" data-icon="info">info</span>
+                        <p class="text-label-md font-label-md text-on-surface-variant leading-relaxed">
+                            <strong class="font-semibold">Note:</strong> A stage name must be unique. Capacity determines the maximum number of operators allowed at this stage.
+                        </p>
+                    </div>
+
+                    <!-- Form Action Footer -->
+                    <div class="pt-4 border-t border-outline-variant/40 flex flex-col sm:flex-row sm:justify-end gap-3">
+                        <a class="h-11 w-full sm:w-auto px-5 rounded-lg border border-outline-variant/60 bg-surface-container-lowest text-secondary font-label-md text-label-md hover:bg-surface-container-low hover:text-on-surface transition-all active:scale-[0.99] flex items-center justify-center"
+                           href="/web/stages">
+                            Cancel
+                        </a>
+                        <button class="h-11 w-full sm:w-auto px-6 rounded-lg bg-primary-container text-on-primary font-label-md text-label-md font-medium shadow-sm hover:bg-primary transition-all active:scale-[0.99] flex items-center justify-center gap-2" type="submit">
+                            <span class="material-symbols-outlined text-[18px]" data-icon="save">save</span>
+                            <span>Save Stage</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<div th:replace="~{fragments/layout :: layout(~{::#content}, 'duepayments', 'Due Payments Management', 'Issue dues and monitor their status for moto-taxi operators.')}">
+    <div id="content">
+        <!-- Title and Primary Action -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-space-md">
+            <div>
+                <h1 class="text-headline-xl font-headline-xl text-on-surface tracking-tight">Due Payments Management</h1>
+                <p class="text-body-md font-body-md text-on-surface-variant mt-0.5">Issue dues and monitor their status for moto-taxi operators.</p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-space-sm w-full sm:w-auto">
+                <a class="h-11 px-4 w-full sm:w-auto bg-surface-container-lowest border border-outline-variant/40 hover:bg-surface-container-low text-on-surface rounded-lg text-label-md font-label-md font-medium flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.99]"
+                   href="/web/duepayments/bulk-issue" sec:authorize="hasRole('FINANCE_OFFICER')">
+                    <span class="material-symbols-outlined text-[18px]" data-icon="playlist_add">playlist_add</span>
+                    <span>Bulk Issue</span>
+                </a>
+                <a class="h-11 px-4 w-full sm:w-auto bg-primary-container hover:bg-primary text-on-primary rounded-lg text-label-md font-label-md font-medium flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.99]"
+                   href="/web/duepayments/new" sec:authorize="hasRole('FINANCE_OFFICER')">
+                    <span class="material-symbols-outlined text-[18px]" data-icon="add">add</span>
+                    <span>Issue Due</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Data Table Card Container -->
+        <section class="bg-surface-container-lowest border border-outline-variant/30 rounded-lg shadow-sm overflow-hidden flex flex-col">
+            <div class="p-space-md border-b border-outline-variant/30 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-space-sm bg-surface-container-lowest">
+                <div class="flex items-center gap-space-sm" th:with="count=${#lists.size(duepayments)}">
+                    <span class="text-label-md font-label-md font-semibold text-on-surface">Recorded Dues</span>
+                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-surface-container text-primary"
+                          th:text="${count} + ' ' + (${count} == 1 ? 'due' : 'dues')">0 dues</span>
+                </div>
+                <!-- Status Filter -->
+                <form class="flex items-center gap-2" method="get" th:action="@{/web/duepayments}">
+                    <select class="h-9 px-3 pr-8 rounded-lg border border-outline-variant/50 bg-surface-container-lowest text-on-surface text-label-sm font-label-sm focus:outline-none focus:border-primary-container focus:ring-2 focus:ring-primary-container/20 transition-all appearance-none cursor-pointer"
+                            name="status" onchange="this.form.submit()">
+                        <option value="" th:selected="${statusFilter == null or statusFilter == ''}">All statuses</option>
+                        <option value="PENDING" th:selected="${statusFilter == 'PENDING'}">Pending</option>
+                        <option value="SUBMITTED" th:selected="${statusFilter == 'SUBMITTED'}">Submitted</option>
+                        <option value="CASH_PENDING" th:selected="${statusFilter == 'CASH_PENDING'}">Cash pending</option>
+                        <option value="PAID" th:selected="${statusFilter == 'PAID'}">Paid</option>
+                        <option value="FAILED" th:selected="${statusFilter == 'FAILED'}">Failed</option>
+                        <option value="OVERDUE" th:selected="${statusFilter == 'OVERDUE'}">Overdue</option>
+                    </select>
+                </form>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[960px] border-collapse text-left">
+                    <thead>
+                    <tr class="h-10 bg-surface-container-low border-b border-outline-variant/30">
+                        <th class="px-space-md text-label-xs font-label-xs uppercase tracking-wider text-outline font-semibold w-16" scope="col">ID</th>
+                        <th class="px-space-md text-label-xs font-label-xs uppercase tracking-wider text-outline font-semibold" scope="col">Operator</th>
+                        <th class="px-space-md text-label-xs font-label-xs uppercase tracking-wider text-outline font-semibold text-right" scope="col">Amount</th>
+                        <th class="px-space-md text-label-xs font-label-xs uppercase tracking-wider text-outline font-semibold" scope="col">Payment Type</th>
+                        <th class="px-space-md text-label-xs font-label-xs uppercase tracking-wider text-outline font-semibold" scope="col">Due Date</th>
+                        <th class="px-space-md text-label-xs font-label-xs uppercase tracking-wider text-outline font-semibold" scope="col">Status</th>
+                        <th class="px-space-md text-label-xs font-label-xs uppercase tracking-wider text-outline font-semibold" scope="col">Reference</th>
+                        <th class="px-space-md text-label-xs font-label-xs uppercase tracking-wider text-outline font-semibold text-center w-32" scope="col">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody class="divide-y divide-outline-variant/20">
+                    <tr th:each="duepayment, iterStat : ${duepayments}" class="h-[52px] hover:bg-surface-container-low/50 transition-colors">
+                        <td class="px-space-md font-mono text-body-sm font-body-sm text-primary font-medium whitespace-nowrap"
+                            th:text="'DUE-' + ${#numbers.formatInteger(iterStat.count, 3)}">DUE-001</td>
+                        <td class="px-space-md text-body-sm font-body-sm font-medium text-on-surface whitespace-nowrap" th:text="${duepayment.operator.fullName}">Operator Name</td>
+                        <td class="px-space-md text-body-sm font-body-sm font-semibold text-on-surface text-right whitespace-nowrap"
+                            th:text="'RWF ' + ${#numbers.formatDecimal(duepayment.amount, 0, 'COMMA', 0, 'POINT')}">RWF 1,000</td>
+                        <td class="px-space-md text-body-sm font-body-sm text-on-surface-variant whitespace-nowrap">
+                            <span class="inline-flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                                <span th:text="${duepayment.type.name() == 'DAILY'} ? 'Daily' : 'Quarterly Tax'">Daily</span>
+                            </span>
+                        </td>
+                        <td class="px-space-md text-body-sm font-body-sm text-on-surface-variant whitespace-nowrap" th:text="${#temporals.format(duepayment.dueDate, 'dd MMM yyyy')}">01 Jan 2026</td>
+                        <td class="px-space-md whitespace-nowrap">
+                            <span class="inline-flex items-center rounded-full px-2.5 py-1 text-label-sm font-label-sm font-medium"
+                                  th:classappend="${duepayment.effectiveStatus.name() == 'PAID'} ? 'bg-[#2A9D8F]/15 text-[#2A9D8F]' :
+                                                  (${duepayment.effectiveStatus.name() == 'OVERDUE' or duepayment.effectiveStatus.name() == 'FAILED'} ? 'bg-error-container text-error' :
+                                                  (${duepayment.effectiveStatus.name() == 'CASH_PENDING'} ? 'bg-secondary-container text-secondary' :
+                                                  (${duepayment.effectiveStatus.name() == 'SUBMITTED'} ? 'bg-primary-container/20 text-primary' : 'bg-[#E9A23B]/20 text-[#B8771B]')))"
+                                  th:text="${duepayment.effectiveStatus.name()}">PENDING</span>
+                        </td>
+                        <td class="px-space-md text-body-sm font-body-sm text-on-surface-variant whitespace-nowrap" th:text="${duepayment.reference} ?: '-'">-</td>
+                        <td class="px-space-md text-center whitespace-nowrap">
+                            <div class="inline-flex items-center gap-1" sec:authorize="hasRole('FINANCE_OFFICER')">
+                                <form th:if="${duepayment.status.name() == 'CASH_PENDING'}"
+                                      th:action="@{/web/duepayments/{id}/confirm-cash(id=${duepayment.id})}" method="post" class="inline">
+                                    <button class="h-10 w-10 flex items-center justify-center rounded text-outline hover:text-tertiary hover:bg-tertiary-container/20 transition-colors" title="Confirm Cash Payment" type="submit">
+                                        <span class="material-symbols-outlined text-[18px]" data-icon="check_circle">check_circle</span>
+                                    </button>
+                                </form>
+                                <form th:if="${duepayment.status.name() == 'CASH_PENDING'}"
+                                      th:action="@{/web/duepayments/{id}/reject-cash(id=${duepayment.id})}" method="post" class="inline">
+                                    <button class="h-10 w-10 flex items-center justify-center rounded text-outline hover:text-error hover:bg-error-container/40 transition-colors" title="Reject Cash Request" type="submit">
+                                        <span class="material-symbols-outlined text-[18px]" data-icon="cancel">cancel</span>
+                                    </button>
+                                </form>
+                                <a class="h-10 w-10 flex items-center justify-center rounded text-outline hover:text-on-surface hover:bg-surface-container transition-colors"
+                                   th:href="@{/web/duepayments/{id}/edit(id=${duepayment.id})}" title="Edit Due">
+                                    <span class="material-symbols-outlined text-[18px]" data-icon="edit">edit</span>
+                                </a>
+                                <form th:action="@{/web/duepayments/{id}/delete(id=${duepayment.id})}" method="post" class="inline"
+                                      onsubmit="return confirm('Delete this due?');">
+                                    <button class="h-10 w-10 flex items-center justify-center rounded text-outline hover:text-error hover:bg-error-container/40 transition-colors" title="Delete Entry" type="submit">
+                                        <span class="material-symbols-outlined text-[18px]" data-icon="delete">delete</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(duepayments)}">
+                        <td class="px-space-md py-6 text-center text-on-surface-variant" colspan="8">No due payments recorded yet.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</div>
+</body>
+</html>

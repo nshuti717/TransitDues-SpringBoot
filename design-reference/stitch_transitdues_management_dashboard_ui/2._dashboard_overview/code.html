@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TransitDues - Cooperative Ledger Dashboard</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Inter Google Font -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS v3 with Forms & Container Queries -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-tint": "#1555d1",
+            "on-primary": "#ffffff",
+            "on-error": "#ffffff",
+            "primary-fixed": "#dbe1ff",
+            "tertiary": "#00655b",
+            "on-tertiary-fixed-variant": "#005048",
+            "on-surface": "#131c2a",
+            "on-tertiary-container": "#ddfff8",
+            "on-tertiary-fixed": "#00201c",
+            "tertiary-fixed": "#8cf5e4",
+            "secondary-fixed": "#d9e2ff",
+            "surface-container-highest": "#dae3f7",
+            "on-background": "#131c2a",
+            "surface-container-lowest": "#ffffff",
+            "primary-fixed-dim": "#b3c5ff",
+            "outline-variant": "#c3c6d6",
+            "inverse-surface": "#283140",
+            "inverse-primary": "#b3c5ff",
+            "surface-container": "#e7eeff",
+            "tertiary-fixed-dim": "#6fd8c8",
+            "secondary": "#535e7b",
+            "on-secondary-fixed-variant": "#3b4662",
+            "inverse-on-surface": "#ebf1ff",
+            "tertiary-container": "#008074",
+            "on-primary-fixed": "#00174a",
+            "primary": "#0650cc",
+            "on-secondary-container": "#56607d",
+            "secondary-container": "#d1dcfe",
+            "surface-variant": "#dae3f7",
+            "on-primary-fixed-variant": "#003ea6",
+            "on-secondary-fixed": "#0f1b34",
+            "error": "#ba1a1a",
+            "on-primary-container": "#f9f7ff",
+            "surface-bright": "#f9f9ff",
+            "surface-dim": "#d1daee",
+            "on-error-container": "#93000a",
+            "surface-container-low": "#f0f3ff",
+            "primary-container": "#356ae6",
+            "background": "#f9f9ff",
+            "on-tertiary": "#ffffff",
+            "outline": "#737685",
+            "on-surface-variant": "#434654",
+            "error-container": "#ffdad6",
+            "secondary-fixed-dim": "#bbc6e7",
+            "surface-container-high": "#dfe8fc",
+            "surface": "#f9f9ff",
+            "on-secondary": "#ffffff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xs": "0.25rem",
+            "space-lg": "1.5rem",
+            "space-sm": "0.5rem",
+            "space-xl": "2rem",
+            "margin": "2rem",
+            "gutter": "1.5rem",
+            "space-md": "1rem"
+          },
+          "fontFamily": {
+            "headline-xl": ["Inter"],
+            "headline-md": ["Inter"],
+            "headline-lg": ["Inter"],
+            "label-md": ["Inter"],
+            "label-xs": ["Inter"],
+            "label-sm": ["Inter"],
+            "headline-sm": ["Inter"],
+            "body-lg": ["Inter"],
+            "body-sm": ["Inter"],
+            "body-md": ["Inter"]
+          },
+          "fontSize": {
+            "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "500" }],
+            "label-xs": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600" }],
+            "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+            "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "600" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }]
+          }
+        },
+      },
+    }
+  </script>
+</head>
+<body class="bg-surface font-body-md text-on-surface antialiased min-h-screen flex selection:bg-secondary-container selection:text-on-secondary-fixed">
+<!-- Side Navigation Rail (Shared Component: SideNavBar) -->
+<aside class="fixed top-0 left-0 h-screen w-64 z-40 bg-inverse-surface border-r border-outline-variant/20 shadow-sm flex flex-col justify-between p-space-md">
+<!-- Header: Monogram Logo & Product Identity -->
+<div class="space-y-space-lg">
+<div class="flex items-center gap-space-sm px-space-xs pt-space-xs">
+<div aria-label="TD Monogram Logo" class="h-10 w-10 rounded-lg bg-primary-container flex items-center justify-center text-on-primary font-headline-md text-headline-md tracking-tight font-bold shadow-sm">
+          TD
+        </div>
+<div class="flex flex-col">
+<span class="text-headline-md font-headline-md font-bold text-inverse-on-surface leading-tight tracking-tight">TransitDues</span>
+<span class="text-label-xs font-label-xs text-inverse-on-surface/60 font-medium">Cooperative Ledger</span>
+</div>
+</div>
+<!-- Nav Items -->
+<nav aria-label="Main Navigation" class="flex flex-col gap-1.5">
+<!-- Active Tab: Dashboard -->
+<a aria-current="page" class="bg-primary text-on-primary rounded-lg font-medium px-space-md py-space-sm flex items-center gap-space-sm active:scale-[0.99] transition-transform duration-100" href="#dashboard">
+<span class="material-symbols-outlined text-xl" data-icon="dashboard">dashboard</span>
+<span class="text-label-md font-label-md">Dashboard</span>
+</a>
+<!-- Inactive Tab: Stages -->
+<a class="text-inverse-on-surface/70 hover:text-inverse-on-surface hover:bg-surface-variant/10 rounded-lg font-medium px-space-md py-space-sm flex items-center gap-space-sm transition-colors duration-150 active:scale-[0.99]" href="#stages">
+<span class="material-symbols-outlined text-xl" data-icon="location_on">location_on</span>
+<span class="text-label-md font-label-md">Stages</span>
+</a>
+<!-- Inactive Tab: Operators -->
+<a class="text-inverse-on-surface/70 hover:text-inverse-on-surface hover:bg-surface-variant/10 rounded-lg font-medium px-space-md py-space-sm flex items-center gap-space-sm transition-colors duration-150 active:scale-[0.99]" href="#operators">
+<span class="material-symbols-outlined text-xl" data-icon="two_wheeler">two_wheeler</span>
+<span class="text-label-md font-label-md">Operators</span>
+</a>
+<!-- Inactive Tab: Due Payments -->
+<a class="text-inverse-on-surface/70 hover:text-inverse-on-surface hover:bg-surface-variant/10 rounded-lg font-medium px-space-md py-space-sm flex items-center gap-space-sm transition-colors duration-150 active:scale-[0.99]" href="#due-payments">
+<span class="material-symbols-outlined text-xl" data-icon="receipt_long">receipt_long</span>
+<span class="text-label-md font-label-md">Due Payments</span>
+</a>
+</nav>
+</div>
+<!-- Footer Action: Logout -->
+<div class="border-t border-outline-variant/10 pt-space-sm">
+<button class="w-full text-inverse-on-surface/70 hover:text-inverse-on-surface hover:bg-surface-variant/10 rounded-lg font-medium px-space-md py-space-sm flex items-center gap-space-sm transition-colors duration-150 active:scale-[0.99]" type="button">
+<span class="material-symbols-outlined text-xl" data-icon="logout">logout</span>
+<span class="text-label-md font-label-md">Logout</span>
+</button>
+</div>
+</aside>
+<!-- Workspace Canvas -->
+<div class="ml-64 flex-1 flex flex-col min-w-0">
+<!-- Top Navigation Bar (Shared Component: TopNavBar) -->
+<header class="sticky top-0 right-0 z-30 h-16 bg-surface-container-lowest border-b border-outline-variant/30 shadow-sm flex justify-between items-center px-space-xl">
+<!-- Breadcrumb / View Identity -->
+<div>
+<h1 class="text-headline-sm font-headline-sm text-on-surface font-semibold tracking-tight">Dashboard Overview</h1>
+<p class="text-label-xs font-label-xs text-on-surface-variant">Welcome back, Admin Co-op Kigali</p>
+</div>
+<!-- Action & Profile Group -->
+<div class="flex items-center gap-space-md">
+<!-- Notification Action -->
+<button aria-label="Notifications" class="relative p-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors duration-150 active:scale-[0.99]" type="button">
+<span class="material-symbols-outlined text-2xl" data-icon="notifications">notifications</span>
+<span class="absolute top-1.5 right-1.5 flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-error opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-error"></span>
+</span>
+</button>
+<div class="h-6 w-px bg-outline-variant/40"></div>
+<!-- Administrator Profile Display -->
+<div class="flex items-center gap-space-sm">
+<img alt="Admin Co-op Kigali Profile Avatar" class="h-9 w-9 rounded-full object-cover border border-outline-variant/50" data-alt="Close up professional portrait photograph of a municipal transit administrator in formal attire smiling warmly inside a bright contemporary administrative transport bureau office in Kigali." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDL4B6P6oVvofScnDlg38h4jTzfOw0uHW9A4r6D6GayuSf-jvly2RWYpMJlHvqcYJkkg0adadorWwps9DOAKIBWVyBdwYB9sglsPjgDrn140TxiqB5BQ4y8hXWfmfNIWH3M_TjPGNORFdDMKFegcrWodIoWptkBGPOmRN8zF9J2eLsqBZ0xYFrIkXym10HGtTtRO0KDS-XWGnATeZ0rwfjfzs4GmD9GR_08mBcxoqYZpmRa-TiB-kfT"/>
+<div class="flex flex-col text-left">
+<span class="text-label-md font-label-md text-on-surface font-medium leading-none">Admin Co-op Kigali</span>
+<span class="text-label-xs font-label-xs text-on-surface-variant font-normal">Supervisory Auditor</span>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Operational Workspace -->
+<main class="flex-1 p-space-xl max-w-7xl w-full mx-auto space-y-space-xl">
+<!-- Four Summary Metric Cards -->
+<section aria-label="Key Performance Metrics" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
+<!-- Card 1: Total Stages -->
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant/30 p-space-md shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+<div class="flex items-start justify-between">
+<span class="text-label-xs font-label-xs text-on-surface-variant uppercase tracking-wider font-semibold">Total Stages</span>
+<div class="p-2 rounded-lg bg-surface-container text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-xl" data-icon="location_on">location_on</span>
+</div>
+</div>
+<div class="mt-4">
+<div class="text-headline-lg font-headline-lg text-on-surface font-bold">12</div>
+<p class="text-label-sm font-label-sm text-tertiary flex items-center gap-1 mt-1 font-medium">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+              +2 added this semester
+            </p>
+</div>
+</div>
+<!-- Card 2: Registered Operators -->
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant/30 p-space-md shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+<div class="flex items-start justify-between">
+<span class="text-label-xs font-label-xs text-on-surface-variant uppercase tracking-wider font-semibold">Registered Operators</span>
+<div class="p-2 rounded-lg bg-surface-container text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-xl" data-icon="two_wheeler">two_wheeler</span>
+</div>
+</div>
+<div class="mt-4">
+<div class="text-headline-lg font-headline-lg text-on-surface font-bold">86</div>
+<p class="text-label-sm font-label-sm text-on-surface-variant mt-1 font-medium">
+              82 active riders on route
+            </p>
+</div>
+</div>
+<!-- Card 3: Payments This Month -->
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant/30 p-space-md shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+<div class="flex items-start justify-between">
+<span class="text-label-xs font-label-xs text-on-surface-variant uppercase tracking-wider font-semibold">Payments This Month</span>
+<div class="p-2 rounded-lg bg-tertiary-container/10 text-tertiary flex items-center justify-center">
+<span class="material-symbols-outlined text-xl" data-icon="payments">payments</span>
+</div>
+</div>
+<div class="mt-4">
+<div class="text-headline-lg font-headline-lg text-on-surface font-bold">RWF 1,245,000</div>
+<p class="text-label-sm font-label-sm text-tertiary mt-1 font-medium">
+              Target: 1.5M RWF (83%)
+            </p>
+</div>
+</div>
+<!-- Card 4: Pending Payments -->
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant/30 p-space-md shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+<div class="flex items-start justify-between">
+<span class="text-label-xs font-label-xs text-on-surface-variant uppercase tracking-wider font-semibold">Pending Payments</span>
+<div class="p-2 rounded-lg bg-error-container/40 text-error flex items-center justify-center">
+<span class="material-symbols-outlined text-xl" data-icon="error_outline">error_outline</span>
+</div>
+</div>
+<div class="mt-4">
+<div class="text-headline-lg font-headline-lg text-on-surface font-bold">14</div>
+<p class="text-label-sm font-label-sm text-error mt-1 font-medium">
+              Requires follow-up audit
+            </p>
+</div>
+</div>
+</section>
+<!-- Main Operational Section 1: Stage Capacity Overview -->
+<section aria-labelledby="stage-capacity-heading" class="bg-surface-container-lowest rounded-lg border border-outline-variant/30 shadow-sm overflow-hidden">
+<!-- Table Header Toolbar -->
+<div class="px-space-lg py-space-md flex items-center justify-between border-b border-outline-variant/20 bg-surface-container-lowest">
+<div>
+<h2 class="text-headline-sm font-headline-sm text-on-surface font-semibold" id="stage-capacity-heading">Stage Capacity Overview</h2>
+<p class="text-label-xs font-label-xs text-on-surface-variant mt-0.5">Real-time moto-taxi stage allocation across city sectors</p>
+</div>
+<a class="text-primary hover:text-primary-container text-label-md font-label-md flex items-center gap-1 font-medium group transition-colors" href="#stages">
+            View All Stages
+            <span class="material-symbols-outlined text-base group-hover:translate-x-0.5 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+</a>
+</div>
+<!-- Data Grid -->
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low/60 h-10 border-b border-outline-variant/20">
+<th class="px-space-md text-label-xs font-label-xs uppercase text-on-surface-variant font-semibold tracking-wider" scope="col">Stage Name</th>
+<th class="px-space-md text-label-xs font-label-xs uppercase text-on-surface-variant font-semibold tracking-wider" scope="col">Location</th>
+<th class="px-space-md text-label-xs font-label-xs uppercase text-on-surface-variant font-semibold tracking-wider text-right" scope="col">Current Operators</th>
+<th class="px-space-md text-label-xs font-label-xs uppercase text-on-surface-variant font-semibold tracking-wider text-right" scope="col">Capacity</th>
+<th class="px-space-md text-label-xs font-label-xs uppercase text-on-surface-variant font-semibold tracking-wider text-right" scope="col">Availability</th>
+<th class="px-space-md text-label-xs font-label-xs uppercase text-on-surface-variant font-semibold tracking-wider text-center" scope="col">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10 font-body-sm text-on-surface">
+<!-- Row 1: Remera -->
+<tr class="h-[52px] hover:bg-surface-container-low/40 transition-colors">
+<td class="px-space-md font-label-md font-medium text-on-surface">Remera Stage</td>
+<td class="px-space-md text-on-surface-variant">Gasabo, Kigali</td>
+<td class="px-space-md text-right font-medium">18</td>
+<td class="px-space-md text-right text-on-surface-variant">20</td>
+<td class="px-space-md text-right font-medium">2 spaces</td>
+<td class="px-space-md text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-label-sm font-label-sm bg-amber-500/10 text-amber-700 font-medium border border-amber-600/20">
+                    Almost Full
+                  </span>
+</td>
+</tr>
+<!-- Row 2: Nyabugogo -->
+<tr class="h-[52px] hover:bg-surface-container-low/40 transition-colors">
+<td class="px-space-md font-label-md font-medium text-on-surface">Nyabugogo Terminal</td>
+<td class="px-space-md text-on-surface-variant">Nyarugenge, Kigali</td>
+<td class="px-space-md text-right font-medium">25</td>
+<td class="px-space-md text-right text-on-surface-variant">30</td>
+<td class="px-space-md text-right font-medium">5 spaces</td>
+<td class="px-space-md text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-label-sm font-label-sm bg-tertiary-container/15 text-tertiary font-medium border border-tertiary/20">
+                    Available
+                  </span>
+</td>
+</tr>
+<!-- Row 3: Kimironko -->
+<tr class="h-[52px] hover:bg-surface-container-low/40 transition-colors">
+<td class="px-space-md font-label-md font-medium text-on-surface">Kimironko Market Stage</td>
+<td class="px-space-md text-on-surface-variant">Gasabo, Kigali</td>
+<td class="px-space-md text-right font-medium">15</td>
+<td class="px-space-md text-right text-on-surface-variant">15</td>
+<td class="px-space-md text-right font-medium">0 spaces</td>
+<td class="px-space-md text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-label-sm font-label-sm bg-error-container/40 text-error font-medium border border-error/20">
+                    Full
+                  </span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- Main Operational Section 2: Recent Due Payments -->
+<section aria-labelledby="recent-payments-heading" class="bg-surface-container-lowest rounded-lg border border-outline-variant/30 shadow-sm overflow-hidden">
+<!-- Table Header Toolbar -->
+<div class="px-space-lg py-space-md flex items-center justify-between border-b border-outline-variant/20 bg-surface-container-lowest">
+<div>
+<h2 class="text-headline-sm font-headline-sm text-on-surface font-semibold" id="recent-payments-heading">Recent Due Payments</h2>
+<p class="text-label-xs font-label-xs text-on-surface-variant mt-0.5">Recorded transit ledger entries and daily dues clearance status</p>
+</div>
+<a class="text-primary hover:text-primary-container text-label-md font-label-md flex items-center gap-1 font-medium group transition-colors" href="#due-payments">
+            View All Payments
+            <span class="material-symbols-outlined text-base group-hover:translate-x-0.5 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+</a>
+</div>
+<!-- Data Grid -->
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low/60 h-10 border-b border-outline-variant/20">
+<th class="px-space-md text-label-xs font-label-xs uppercase text-on-surface-variant font-semibold tracking-wider" scope="col">Operator</th>
+<th class="px-space-md text-label-xs font-label-xs uppercase text-on-surface-variant font-semibold tracking-wider" scope="col">Plate Number</th>
+<th class="px-space-md text-label-xs font-label-xs uppercase text-on-surface-variant font-semibold tracking-wider text-right" scope="col">Amount</th>
+<th class="px-space-md text-label-xs font-label-xs uppercase text-on-surface-variant font-semibold tracking-wider" scope="col">Payment Type</th>
+<th class="px-space-md text-label-xs font-label-xs uppercase text-on-surface-variant font-semibold tracking-wider" scope="col">Date Paid</th>
+<th class="px-space-md text-label-xs font-label-xs uppercase text-on-surface-variant font-semibold tracking-wider text-center" scope="col">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10 font-body-sm text-on-surface">
+<!-- Payment Row 1: Jean Claude Habimana -->
+<tr class="h-[52px] hover:bg-surface-container-low/40 transition-colors">
+<td class="px-space-md font-label-md font-medium text-on-surface flex items-center gap-2.5">
+<div class="h-7 w-7 rounded-full bg-secondary-container text-on-secondary-fixed text-label-xs font-bold flex items-center justify-center">
+                    JH
+                  </div>
+<span>Jean Claude Habimana</span>
+</td>
+<td class="px-space-md font-mono text-label-sm font-label-sm text-on-surface-variant">RAB 123A</td>
+<td class="px-space-md text-right font-medium font-mono text-on-surface">RWF 1,000</td>
+<td class="px-space-md text-on-surface-variant">Daily Dues</td>
+<td class="px-space-md text-on-surface-variant">19 Sep 2026</td>
+<td class="px-space-md text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-label-sm font-label-sm bg-tertiary-container/15 text-tertiary font-medium border border-tertiary/20">
+                    Paid
+                  </span>
+</td>
+</tr>
+<!-- Payment Row 2: Diane Uwase -->
+<tr class="h-[52px] hover:bg-surface-container-low/40 transition-colors">
+<td class="px-space-md font-label-md font-medium text-on-surface flex items-center gap-2.5">
+<div class="h-7 w-7 rounded-full bg-secondary-container text-on-secondary-fixed text-label-xs font-bold flex items-center justify-center">
+                    DU
+                  </div>
+<span>Diane Uwase</span>
+</td>
+<td class="px-space-md font-mono text-label-sm font-label-sm text-on-surface-variant">RAE 456B</td>
+<td class="px-space-md text-right font-medium font-mono text-on-surface">RWF 5,000</td>
+<td class="px-space-md text-on-surface-variant">Quarterly Tax</td>
+<td class="px-space-md text-on-surface-variant">18 Sep 2026</td>
+<td class="px-space-md text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-label-sm font-label-sm bg-tertiary-container/15 text-tertiary font-medium border border-tertiary/20">
+                    Paid
+                  </span>
+</td>
+</tr>
+<!-- Payment Row 3: Eric Ndayishimiye -->
+<tr class="h-[52px] hover:bg-surface-container-low/40 transition-colors">
+<td class="px-space-md font-label-md font-medium text-on-surface flex items-center gap-2.5">
+<div class="h-7 w-7 rounded-full bg-secondary-container text-on-secondary-fixed text-label-xs font-bold flex items-center justify-center">
+                    EN
+                  </div>
+<span>Eric Ndayishimiye</span>
+</td>
+<td class="px-space-md font-mono text-label-sm font-label-sm text-on-surface-variant">RAG 789C</td>
+<td class="px-space-md text-right font-medium font-mono text-on-surface">RWF 1,000</td>
+<td class="px-space-md text-on-surface-variant">Daily Dues</td>
+<td class="px-space-md text-on-surface-variant">20 Sep 2026</td>
+<td class="px-space-md text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-label-sm font-label-sm bg-amber-500/10 text-amber-700 font-medium border border-amber-600/20">
+                    Pending
+                  </span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</main>
+</div>
+</body></html>
